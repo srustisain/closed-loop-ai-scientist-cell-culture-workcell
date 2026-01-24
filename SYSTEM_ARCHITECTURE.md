@@ -55,7 +55,7 @@ flowchart TB
         direction TB
         POTATO["🥔 Potato.ai<br/><i>Literature Search</i><br/><br/>❓ <b>TBD: Integration</b>"]
         PREV_DATA["📊 Previous Iteration Data<br/><i>OD readings + design mapping</i>"]
-        HUMAN_REAGENTS["👤 Human Input<br/><i>Reagent selection</i>"]
+        HUMAN_REAGENTS["👤 Human Action<br/><i>Physical reagent placement</i>"]
     end
 
     subgraph DESIGNER["🧠 EXPERIMENT DESIGNER"]
@@ -117,7 +117,7 @@ flowchart TB
     %% Iteration flow
     POTATO -->|"Early iterations"| DESIGNER
     PREV_DATA -->|"Later iterations"| DESIGNER
-    HUMAN_REAGENTS -->|"Until transition"| DESIGNER
+    HUMAN_REAGENTS -->|"Places reagents<br/>specified by Potato"| DESIGNER
     
     DESIGNER --> OUTPUT_FILES
     OUTPUT_FILES --> MCP
@@ -162,7 +162,8 @@ The "brain" of the system. Uses Bayesian Optimization to generate experimental d
 | Literature parameters | Potato.ai | Early iterations |
 | Experimental results | Data Parser | Later iterations |
 | Available routines | Monomer MCP | One-time setup |
-| Reagent selection | Human | Until transition |
+| Reagent specification | Potato.ai | Early iterations |
+| Physical reagent placement | Human | Early iterations (places what Potato specifies) |
 
 **Outputs**
 
@@ -315,7 +316,8 @@ stateDiagram
     state Exploration {
         [*] --> PotatoGuided
         PotatoGuided: Exploration Phase
-        PotatoGuided: • Potato.ai + human guide reagents
+        PotatoGuided: • Potato.ai specifies reagents to explore
+        PotatoGuided: • Human places specified reagents on workcell
         PotatoGuided: • Broader parameter space
     }
     
@@ -333,7 +335,7 @@ stateDiagram
     Exploitation --> [*]: Complete
 ```
 
-**Trigger**: Human operator decides when to transition (via Webapp review).
+**Trigger**: Human operator decides when to transition to fixed reagents (via Webapp review). Once transitioned, reagents are locked and no longer need to be placed.
 
 ---
 
