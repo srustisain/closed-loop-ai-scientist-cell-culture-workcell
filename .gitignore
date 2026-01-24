@@ -1,0 +1,234 @@
+# ===================
+# OS-specific files
+# ===================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+Icon?
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===================
+# IDE and Editor files
+# ===================
+
+# VSCode / Cursor
+.vscode/
+.cursor/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+.netrwhist
+tags
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===================
+# Secrets and credentials
+# ===================
+
+# Environment files
+.env
+.env.*
+.env.local
+.env.*.local
+*.env
+env/
+.envrc
+
+# API keys and credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+credentials.json
+credentials/
+secrets/
+secrets.json
+secrets.yaml
+secrets.yml
+*.secret
+*.secrets
+service-account*.json
+*-credentials.json
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.ppk
+
+# AWS
+.aws/
+aws-credentials
+.boto
+
+# GCP
+.gcloud/
+gcloud/
+application_default_credentials.json
+
+# Azure
+.azure/
+
+# ===================
+# Python
+# ===================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+pyrightconfig.json
+.pytype/
+cython_debug/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+profile_default/
+ipython_config.py
+
+# ===================
+# Node.js
+# ===================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.npm/
+.yarn/
+
+# ===================
+# Logs and temp files
+# ===================
+*.log
+logs/
+log/
+*.tmp
+*.temp
+tmp/
+temp/
+cache/
+.cache/
+
+# ===================
+# Local config files
+# ===================
+local.settings.json
+local.config.json
+*.local.json
+*.local.yaml
+*.local.yml
+config.local.*
+settings.local.*
+
+# ===================
+# Data files (may contain sensitive info)
+# ===================
+*.csv
+*.xlsx
+*.xls
+data/
+datasets/
+
+# ===================
+# Miscellaneous
+# ===================
+*.bak
+*.backup
+*.orig
+*.rej
+.history/
+.ionide/
