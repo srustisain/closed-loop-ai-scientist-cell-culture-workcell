@@ -1,0 +1,10 @@
+[project]
+name = "closed-loop-ai-scientist-cell-culture-workcell"
+version = "0.1.0"
+description = "Closed-loop AI scientist for cell culture growth optimization"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pydantic",
+]
