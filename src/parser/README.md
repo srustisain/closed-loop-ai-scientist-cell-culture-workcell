@@ -62,6 +62,8 @@ One file per well, named `well_{WELL}_absorbance.csv`:
 
 Only rows with `consider_data=True` are used for curve fitting.
 
+This format matches the data retrieved from the Monomer platereader via MCP (see [Scale-Me-Maybe sample data](https://github.com/hrahman12/Scale-Me-Maybe/tree/main/data) for reference).
+
 ### Well-to-design mapping JSON
 
 ```json
