@@ -12,6 +12,7 @@ repos:
       - id: mypy
         additional_dependencies: [pydantic, numpy]
         args: [--config-file=pyproject.toml]
+        files: ^src/
 
   - repo: local
     hooks:

@@ -139,7 +139,7 @@ uv run ruff format --check . # check formatting without changing files
 
 ## Type checking
 
-Uses [mypy](https://mypy-lang.org/) in strict mode with the Pydantic plugin.
+Uses [mypy](https://mypy-lang.org/) with the Pydantic plugin. Checks `src/` only (not tests or scripts).
 
 ```bash
 uv run mypy src/
