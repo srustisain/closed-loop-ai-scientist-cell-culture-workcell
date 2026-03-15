@@ -4,8 +4,7 @@
 
 | Person | Owns |
 |--------|------|
-| **Julie** | Potato.ai integration + support on Experiment designer |
-| **Srusti** | Experiment designer + Bayesian optimization + growth metrics |
+| **Srusti** | LLM literature review + experiment designer + Bayesian optimization + growth metrics |
 | **Keltoum** | MCP workflows, data parser, webapp, integrations |
 
 ---
@@ -14,9 +13,9 @@
 
 So we can work independently, here's what each component outputs.
 
-### Julie → Srusti: Search space
+### LLM Literature Review → Experiment Designer: Search space
 
-Defines what parameters BO should explore (from literature).
+Srusti gathers a list of documents and references about the cell line of interest as well as papers of interest for optimizing growth conditions, feeds them to an LLM, and extracts what parameters BO should explore.
 
 ```json
 {
@@ -67,14 +66,13 @@ Links each well's parameters to its growth outcome.
 |-----|------|
 | Keltoum | Define system architecture, create project plan, set up project structure |
 
-**Sync**: Agree on plans with Srusti and Julie. 
+**Sync**: Agree on plans with Srusti.
 
 ### Weekend 1: Setup
 
 | Who | What |
 |-----|------|
-| Julie | Figure out how to query Potato.ai, get sample output |
-| Srusti | Set up BO framework, generate mock CSV with 96 rows |
+| Srusti | Curate papers (cell line info + growth condition optimization), set up BO framework, generate mock CSV with 96 rows |
 | Keltoum | Figure out which workcell routines we need, test them on workcell |
 
 **Sync**: Agree on CSV/JSON formats above.
@@ -83,8 +81,7 @@ Links each well's parameters to its growth outcome.
 
 | Who | What |
 |-----|------|
-| Julie | Working Potato integration script |
-| Srusti | Working BO that outputs routine parameters CSV |
+| Srusti | Working LLM literature review pipeline, working BO that outputs routine parameters CSV |
 | Keltoum | Build data parser (OD data → growth metrics JSON) |
 
 **Sync**: Test each component with sample data.
@@ -93,8 +90,7 @@ Links each well's parameters to its growth outcome.
 
 | Who | What |
 |-----|------|
-| Julie | Handle edge cases, add tests |
-| Srusti | BO consumes parsed results, computes growth metrics |
+| Srusti | BO consumes parsed results, computes growth metrics, test literature review pipeline |
 | Keltoum | Build webapp dashboard (view iterations, OD curves) |
 
 **Sync**: Run full loop with mock data.
@@ -103,8 +99,7 @@ Links each well's parameters to its growth outcome.
 
 | Who | What |
 |-----|------|
-| Julie | Final testing, docs |
-| Srusti | Tune BO, add progress visualization |
+| Srusti | Tune BO, add progress visualization, final testing + docs |
 | Keltoum | Integration testing, dry run full system |
 
 **Sync**: Ready for real experiment.
@@ -113,7 +108,7 @@ Links each well's parameters to its growth outcome.
 
 | Who | What |
 |-----|------|
-| All | Run first real experiment on workcell, gather data, evaluate results. Keltoum physically present with workcell |
+| Srusti + Keltoum | Run first real experiment on workcell, gather data, evaluate results. Keltoum physically present with workcell |
 
 **Sync**: Review first iteration results, decide next steps.
 
@@ -123,7 +118,7 @@ Links each well's parameters to its growth outcome.
 
 ```
 src/
-├── potato/           # Julie
+├── literature/       # Srusti
 ├── designer/         # Srusti
 ├── mcp/              # Keltoum
 ├── parser/           # Keltoum

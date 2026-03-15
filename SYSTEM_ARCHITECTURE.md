@@ -10,7 +10,7 @@
 |---------|--------|
 | System Architecture | ✅ Defined |
 | Experiment Designer | 🔶 Partially Defined |
-| Potato.ai Integration | ❓ TBD |
+| LLM Literature Review | 🔶 Partially Defined |
 | Monomer MCP Interface | 🔶 Partially Defined |
 | Data Pipeline | 🔶 Partially Defined |
 | Webapp | 🔶 Partially Defined |
@@ -53,7 +53,7 @@ flowchart TB
 
     subgraph INPUTS["📥 ITERATION INPUTS"]
         direction TB
-        POTATO["🥔 Potato.ai<br/><i>Literature Search</i><br/><br/>❓ <b>TBD: Integration</b>"]
+        LIT_REVIEW["📄 LLM Literature Review<br/><i>Papers on cell line +<br/>growth condition optimization</i><br/><br/>🔶 <b>Partially Defined</b>"]
         PREV_DATA["📊 Previous Iteration Data<br/><i>OD readings + design mapping</i>"]
         HUMAN_REAGENTS["👤 Human Action<br/><i>Physical reagent placement</i>"]
     end
@@ -115,9 +115,9 @@ flowchart TB
     ROUTINES -->|"Informs constraints"| DESIGNER
 
     %% Iteration flow
-    POTATO -->|"Early iterations"| DESIGNER
+    LIT_REVIEW -->|"Early iterations"| DESIGNER
     PREV_DATA -->|"Later iterations"| DESIGNER
-    HUMAN_REAGENTS -->|"Places reagents<br/>specified by Potato"| DESIGNER
+    HUMAN_REAGENTS -->|"Places reagents<br/>specified by literature review"| DESIGNER
     
     DESIGNER --> OUTPUT_FILES
     OUTPUT_FILES --> MCP
@@ -133,7 +133,7 @@ flowchart TB
     HUMAN_DECISION -->|"Yes"| FIXED_MODE["Fixed Reagent Mode"]
     HUMAN_DECISION -->|"No"| EXPLORATION["Continue Exploration"]
 
-    style POTATO fill:#ffe6cc,stroke:#d79b00
+    style LIT_REVIEW fill:#ffe6cc,stroke:#d79b00
     style ROUTINES fill:#ffe6cc,stroke:#d79b00
     style HUMAN_DECISION fill:#e1d5e7,stroke:#9673a6
     style MCP fill:#dae8fc,stroke:#6c8ebf
@@ -159,11 +159,11 @@ The "brain" of the system. Uses Bayesian Optimization to generate experimental d
 
 | Input | Source | When |
 |-------|--------|------|
-| Literature parameters | Potato.ai | Early iterations |
+| Literature parameters | LLM Literature Review | Early iterations |
 | Experimental results | Data Parser | Later iterations |
 | Available routines | Monomer MCP | One-time setup |
-| Reagent specification | Potato.ai | Early iterations |
-| Physical reagent placement | Human | Early iterations (places what Potato specifies) |
+| Reagent specification | LLM Literature Review | Early iterations |
+| Physical reagent placement | Human | Early iterations (places what literature review specifies) |
 
 **Outputs**
 
@@ -177,16 +177,17 @@ The "brain" of the system. Uses Bayesian Optimization to generate experimental d
 
 ---
 
-### 2.2 Potato.ai Integration
+### 2.2 LLM Literature Review
 
-**Status**: ❓ To Be Determined
+**Status**: 🔶 Partially Defined
 
-Provides literature-based guidance for early iterations before sufficient experimental data exists.
+Provides literature-based guidance for early iterations before sufficient experimental data exists. Papers are fed to an LLM, that extracts parameter ranges and reagent recommendations for the experiment designer.
 
 | Question | Priority |
 |----------|----------|
-| How to interface with it Potato.ai for the early itterations? (API / tool / service) | High |
-| What data format does it return? | High |
+| Which papers to include (cell line-specific + general growth optimization)? | High |
+| How to structure the LLM prompt for extracting search space parameters? | High |
+| What output schema should the LLM produce? | High |
 
 ---
 
@@ -314,11 +315,11 @@ stateDiagram
     [*] --> Exploration
     
     state Exploration {
-        [*] --> PotatoGuided
-        PotatoGuided: Exploration Phase
-        PotatoGuided: • Potato.ai specifies reagents to explore
-        PotatoGuided: • Human places specified reagents on workcell
-        PotatoGuided: • Broader parameter space
+        [*] --> LiteratureGuided
+        LiteratureGuided: Exploration Phase
+        LiteratureGuided: • LLM literature review specifies reagents to explore
+        LiteratureGuided: • Human places specified reagents on workcell
+        LiteratureGuided: • Broader parameter space
     }
     
     Exploration --> HumanDecision: Human decides
@@ -335,7 +336,7 @@ stateDiagram
     Exploitation --> [*]: Complete
 ```
 
-**Trigger**: Human operator decides when to transition to fixed reagents (via Webapp review). Once transitioned, reagents are locked and no longer need to be placed.
+**Trigger**: Human operator decides when to transition to fixed reagents (via webapp review). Once transitioned, reagents are locked and no longer need to be placed.
 
 ---
 
@@ -391,8 +392,8 @@ data/
 
 | Component | Action |
 |-----------|--------|
-| Potato.ai | Determine integration method |
-| Potato.ai | Define output schema |
+| LLM Literature Review | Curate relevant papers (cell line + growth optimization) |
+| LLM Literature Review | Define LLM prompt structure and output schema |
 | Monomer MCP | Determine which routines are available |
 | Monomer MCP | Define which routines we need for experiments |
 | Monomer MCP | Define experiment submission workflow |
@@ -420,7 +421,7 @@ data/
 
 | ID | Question | Component |
 |----|----------|-----------|
-| Q1 | How does Potato.ai interface with our system? | Potato.ai |
+| Q1 | Which papers to include and how to structure the LLM prompt for extracting search space? | LLM Literature Review |
 | Q2 | Which available routines fit our experimental needs? | Monomer MCP |
 | Q3 | Do we need to define custom routines, or use existing ones? | Monomer MCP |
 | Q4 | How long should each monitoring phase run? | Experiment Designer |
