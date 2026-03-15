@@ -29,8 +29,9 @@
 14. [Unique Biology](#14-unique-biology)
 15. [Novel Optimization Ideas](#15-novel-optimization-ideas)
 16. [Bayesian Optimization Methodology](#16-bayesian-optimization-methodology)
-17. [Recommended BO Parameter Space](#17-recommended-bo-parameter-space)
-18. [References](#18-references)
+17. [White Paper Strategy: Three Optimization Targets](#17-white-paper-strategy-three-optimization-targets)
+18. [Recommended BO Parameter Space](#18-recommended-bo-parameter-space)
+19. [References](#19-references)
 
 ---
 
@@ -644,7 +645,110 @@ Based on published precedent:
 
 ---
 
-## 17. Recommended BO Parameter Space
+## 17. White Paper Strategy: Three Optimization Targets
+
+This project is a white paper demonstrating a closed-loop AI scientist for cell culture optimization. The goal is not merely to find better growth conditions -- it is to show that an autonomous system can **discover things about *V. natriegens* that human researchers missed, faster and with fewer experiments**.
+
+Parameter selection should prioritize: (1) areas where the literature is wrong or incomplete, so the AI can "discover" something; (2) hidden interactions humans haven't mapped, so closed-loop BO outperforms one-shot DOE; and (3) clear comparisons to traditional methods showing a BO efficiency win.
+
+### Target 1: Growth Rate Optimization
+
+**Objective:** Maximize µ_max (maximum specific growth rate during exponential phase).
+
+This is the baseline result. Every media optimization paper reports growth rate, and it provides credibility and direct comparison to existing literature benchmarks. The current records are:
+- Rich medium (BHIN): µ = 4.43 h⁻¹ (9.4 min doubling)
+- Defined medium (Wilms-MOPS): µ = 1.97 h⁻¹ (21 min doubling)
+
+The closed-loop system should aim to **match or exceed the defined medium record** by exploring a broader parameter space than Gericke et al. 2024, who used traditional DOE.
+
+### Target 2: Multi-Objective Pareto Optimization (Growth Rate vs. Biomass Yield)
+
+**Objectives:** Maximize µ_max AND maximize final OD600 simultaneously via Pareto optimization.
+
+This is the novel result. Nobody has systematically mapped the growth rate vs. final biomass trade-off for *V. natriegens* using Bayesian optimization. The literature clearly shows these objectives conflict:
+
+| Condition | Favors Growth Rate | Favors Final Biomass |
+|-----------|-------------------|---------------------|
+| Temperature | 37°C (µ = 4.43 h⁻¹) | 30°C (62% more CDW in fed-batch) |
+| Glucose | High (fast uptake) | Low-moderate (less acid crash) |
+| Buffer | Moderate (less osmotic load) | High (prevents acid death) |
+
+A Pareto front mapping these trade-offs would reveal:
+- **"Sprint" conditions**: maximum instantaneous growth rate
+- **"Marathon" conditions**: maximum final cell density
+- **Balanced conditions**: best compromise for practical applications
+
+This has direct practical value -- different biotech applications need different strategies (e.g., rapid cloning vs. protein production vs. cell-free extract preparation). The Pareto front provides actionable guidance that a single-objective study cannot.
+
+**BO methodology**: Use multi-objective BO with the qEHVI (q-Expected Hypervolume Improvement) acquisition function in BoTorch, or BayBE's built-in multi-target Pareto support. Each 96-well plate simultaneously maps both objectives since growth curves yield both µ_max and final OD.
+
+### Target 3: Autonomous Discovery of the NaCl-Osmolality Confound
+
+**Objective:** Demonstrate that the AI system can independently identify confounded variables and resolve them.
+
+This is the headline result for the white paper. The entire *V. natriegens* field used 15-25 g/L NaCl for decades based on studies that confounded sodium ion requirements with osmolality effects. Gericke et al. (2024) was the first to decouple these, showing the true NaCl optimum is 7.5-15 g/L when osmolality is independently controlled via MOPS buffer.
+
+**The experimental design:**
+- Include both NaCl (5-25 g/L) and MOPS (100-500 mM) as independent BO dimensions
+- Do NOT inform the system of the expected confound
+- Let the GP surrogate model discover the NaCl × MOPS interaction organically
+- After convergence, analyze the GP's learned length scales and interaction structure
+
+**Expected outcome:** The BO should converge on lower NaCl + higher MOPS, contradicting the textbook 2.5% NaCl recommendation. This independently validates Gericke et al. 2024 while demonstrating that the AI system can navigate misleading prior knowledge.
+
+**Why this matters for the white paper:** Most BO-for-biology papers apply optimization to well-characterized systems. Showing that BO can **resolve a confound** that misled human researchers for decades is a qualitatively different (and stronger) claim about AI-driven science.
+
+### White Paper Narrative Structure
+
+**Result 1: "The system autonomously identified that the established NaCl optimum is confounded with osmolality"**
+- Show the BO exploring NaCl × MOPS space iteratively
+- Show convergence on lower NaCl + higher MOPS vs. the textbook recommendation
+- Compare to Gericke et al. 2024 as independent validation
+
+**Result 2: "Multi-objective optimization revealed a Pareto front of growth strategies"**
+- Present the trade-off surface between growth rate and final biomass
+- Identify "sprint" vs. "marathon" vs. balanced condition clusters
+- Show temperature and glucose as key trade-off drivers
+- Discuss practical implications for different biotech applications
+
+**Result 3: "The system discovered non-obvious parameter interactions in fewer experiments than traditional DOE"**
+- Glycine betaine × NaCl interaction (betaine partially substituting for salt?)
+- Iron × growth rate (iron rate-limiting at high growth rates?)
+- Glucose × MOPS × temperature three-way interaction (overflow metabolism cascade)
+- Efficiency comparison: X improvement in Y rounds vs. literature benchmarks
+- Compare to Lapierre 2025 (28% improvement) and Nature Comms 2025 (10-30x fewer experiments)
+
+### Differentiation From Existing BO-for-Media Papers
+
+Most published BO media optimization papers (Lapierre 2025, Cosenza 2022, Nature Comms 2025) work with organisms where the biology is well-characterized. *V. natriegens* presents unique challenges that make this work distinct:
+
+1. **Fastest-growing organism** -- time resolution of measurements matters; growth curves complete in 3-6 hours enabling multiple BO rounds per day
+2. **Acid sensitivity cliff** -- the fitness landscape has sharp drop-offs (not smooth gradients), challenging GP surrogate models and testing BO robustness
+3. **Actively misleading prior knowledge** -- the NaCl/osmolality confound means naive literature-based priors would hurt, not help. The system must overcome this.
+4. **Hardware-constrained optimization** -- 96-well plate oxygen limitation creates a real physical constraint the BO must navigate, unlike bioreactor-based studies
+5. **Multi-objective biological trade-offs** -- growth rate vs. biomass yield is a fundamental microbial trade-off that has never been Pareto-mapped for *V. natriegens*
+
+### Full 9-Parameter Search Space
+
+For the white paper, the parameter space should be broad enough that traditional DOE is impractical (that is the point of BO). Nine parameters at 3 levels would require 19,683 full factorial experiments. BO should find the optimum in **5-8 rounds × 96 wells = 480-768 experiments** while capturing full interaction structure.
+
+| Parameter | Range | Type | White Paper Role |
+|-----------|-------|------|-----------------|
+| NaCl | 5-25 g/L | Continuous | Confound discovery (Target 3) |
+| MOPS buffer | 100-500 mM | Continuous | Confound discovery + acid survival |
+| Temperature | 30-37°C | Continuous | Growth vs. yield trade-off (Target 2) |
+| Glucose | 5-30 g/L | Continuous | Overflow metabolism interaction |
+| MgSO₄ | 0.5-25 mM | Continuous | Ribosome stability, no literature consensus |
+| Casamino acids | 0-5 g/L | Continuous | Biosynthetic burden, interaction with growth rate |
+| Fe (ferric citrate) | 0-200 µM | Continuous | "Very strong influence", wildly inconsistent in literature |
+| Fill volume | 75-250 µL | Continuous | O₂ transfer (hardware constraint navigation) |
+| Glycine betaine | 0-10 mM | Continuous | Novel 2025 finding, unexplored in optimization |
+
+**Key interactions to capture:** NaCl × MOPS (the confound), glucose × MOPS × temperature (overflow metabolism cascade), NaCl × glycine betaine (osmolyte substitution), Fe × µ_max (iron limitation at high growth rates), fill volume × glucose (O₂ demand scales with carbon availability).
+
+---
+
+## 18. Recommended BO Parameter Space (Detailed)
 
 ### Tier 1 -- Highest Impact (include in every experiment)
 
@@ -703,7 +807,7 @@ Use Latin hypercube sampling for initial plate, then BO-guided suggestions for s
 
 ---
 
-## 18. References
+## 19. References
 
 ### Core *V. natriegens* Papers
 
