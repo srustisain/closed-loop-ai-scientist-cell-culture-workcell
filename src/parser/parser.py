@@ -173,8 +173,8 @@ def run(iteration_dir: str | Path) -> IterationMetrics:
 
     results: list[WellResult] = []
 
-    for csv_path in csv_files:
-        csv_path = Path(csv_path)
+    for csv_file in csv_files:
+        csv_path = Path(csv_file)
         well_name = _extract_well_name(csv_path)
 
         elapsed_hours, od_values, parent_well = load_od_data(csv_path)

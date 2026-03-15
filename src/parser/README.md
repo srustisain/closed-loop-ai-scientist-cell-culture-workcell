@@ -137,6 +137,32 @@ uv run ruff format .         # format (black-compatible)
 uv run ruff format --check . # check formatting without changing files
 ```
 
+## Type checking
+
+Uses [mypy](https://mypy-lang.org/) in strict mode with the Pydantic plugin.
+
+```bash
+uv run mypy src/
+```
+
+## Pre-commit hooks
+
+Ruff, mypy, and tests run automatically on every `git commit`. Set up once with:
+
+```bash
+uv run pre-commit install
+```
+
+To run all hooks manually against all files:
+
+```bash
+uv run pre-commit run --all-files
+```
+
+## CI
+
+GitHub Actions runs lint, type checking, and tests on every push to `main` and on pull requests. See `.github/workflows/ci.yml`.
+
 ## Code structure
 
 ```
