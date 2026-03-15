@@ -107,6 +107,25 @@ This format matches the data retrieved from the Monomer platereader via MCP (see
 | `n_datapoints` | Number of valid (`consider_data=True`) readings used. | Context for how much data backs the estimate. |
 | `time_range_hours` | Time span of valid data. | Context for the observation window. |
 
+## Tests
+
+```bash
+uv run pytest           # run all tests with coverage
+uv run pytest -v        # verbose output
+```
+
+Coverage is enforced at 90% minimum (configured in `pyproject.toml`).
+
+| Area | What's tested |
+|------|---------------|
+| **Curve fitting** | Recovers known growth rates (parameterized across 4 rates), flat growth, declining OD, zero/negative values, too few datapoints |
+| **CSV loading** | Filters `consider_data`, sorts out-of-order timestamps, handles both timezone formats (`-0800` and `-08:00`), empty result when all rows filtered |
+| **Integration** | End-to-end with temp directories: correct output schema, well CSV without design mapping (empty params), design mapping without CSV (skipped), well with no valid data (skipped), no CSVs (raises error) |
+| **CLI** | Valid run prints summary, invalid path exits non-zero, verbose flag |
+| **Smoke** | Full 96-well plate generated and parsed, all results checked for sanity |
+
+Tests use `tmp_path` for isolation -- no test modifies the working directory or depends on pre-existing data.
+
 ## Code structure
 
 ```
@@ -115,4 +134,7 @@ src/parser/
 ├── parser.py       # Core logic: load, link, fit, write
 ├── cli.py          # CLI entrypoint
 └── __main__.py     # Enables `python -m src.parser.cli`
+
+tests/
+└── test_parser.py  # All parser tests (22 tests)
 ```
