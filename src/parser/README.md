@@ -126,6 +126,17 @@ Coverage is enforced at 90% minimum (configured in `pyproject.toml`).
 
 Tests use `tmp_path` for isolation -- no test modifies the working directory or depends on pre-existing data.
 
+## Linting and formatting
+
+Uses [ruff](https://docs.astral.sh/ruff/) for both linting and formatting (configured in `pyproject.toml`).
+
+```bash
+uv run ruff check .          # lint
+uv run ruff check --fix .    # lint and auto-fix
+uv run ruff format .         # format (black-compatible)
+uv run ruff format --check . # check formatting without changing files
+```
+
 ## Code structure
 
 ```

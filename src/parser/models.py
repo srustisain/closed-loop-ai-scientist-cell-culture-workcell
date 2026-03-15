@@ -37,21 +37,20 @@ The parser computes three values per well from the OD600 time series:
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Input models (well-to-design mapping from experiment designer)
 # ---------------------------------------------------------------------------
 
+
 class WellDesign(BaseModel):
     """A single well's experimental design parameters."""
+
     well: str = Field(description="Well position on the plate, e.g. 'A3'")
-    params: Dict[str, float] = Field(
+    params: dict[str, float] = Field(
         description="Design parameters for this well, e.g. "
-                    "{'cell_volume_uL': 40, 'mix_height_mm': 1, 'mix_reps': 3}"
+        "{'cell_volume_uL': 40, 'mix_height_mm': 1, 'mix_reps': 3}"
     )
 
 
@@ -61,33 +60,36 @@ class DesignMapping(BaseModel):
     Produced by the experiment designer before each iteration and stored at:
         data/iterations/iter_NNN/input/well_to_design_mapping.json
     """
-    designs: List[WellDesign]
+
+    designs: list[WellDesign]
 
 
 # ---------------------------------------------------------------------------
 # Output models (growth metrics consumed by BO and webapp)
 # ---------------------------------------------------------------------------
 
+
 class WellResult(BaseModel):
     """Growth metrics for a single well, linked to its design parameters.
 
     See module docstring for detailed metric definitions.
     """
+
     well: str = Field(description="Well position, e.g. 'A3'")
     parent_well: str = Field(description="Well this was passaged from (e.g. 'A1' or 'stock')")
-    params: Dict[str, float] = Field(description="Design parameters used for this well")
+    params: dict[str, float] = Field(description="Design parameters used for this well")
     growth_rate: float = Field(
         description="Specific growth rate mu (1/hour). "
-                    "Slope of ln(OD) vs time during exponential phase. "
-                    "PRIMARY OPTIMIZATION TARGET: higher = faster growth."
+        "Slope of ln(OD) vs time during exponential phase. "
+        "PRIMARY OPTIMIZATION TARGET: higher = faster growth."
     )
-    doubling_time_hours: Optional[float] = Field(
+    doubling_time_hours: float | None = Field(
         description="Time for population to double: ln(2)/growth_rate. "
-                    "None if growth_rate <= 0 (no valid growth detected)."
+        "None if growth_rate <= 0 (no valid growth detected)."
     )
     r_squared: float = Field(
         description="R-squared of the exponential fit (0-1). "
-                    "Data quality indicator: >0.95 = reliable, <0.8 = suspect."
+        "Data quality indicator: >0.95 = reliable, <0.8 = suspect."
     )
     n_datapoints: int = Field(description="Number of valid OD readings used in the fit")
     time_range_hours: float = Field(description="Time span of valid data in hours")
@@ -99,5 +101,6 @@ class IterationMetrics(BaseModel):
     Stored at: data/iterations/iter_NNN/analysis/growth_metrics.json
     Consumed by: experiment designer (BO), webapp dashboard.
     """
+
     iteration_id: str = Field(description="Iteration identifier, e.g. 'iter_001'")
-    results: List[WellResult]
+    results: list[WellResult]

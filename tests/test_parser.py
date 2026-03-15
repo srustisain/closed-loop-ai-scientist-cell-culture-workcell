@@ -10,16 +10,19 @@ import pytest
 
 from src.parser.parser import fit_exponential_growth, load_od_data, run
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _write_well_csv(path: Path, rows: list[dict]) -> None:
     """Write a well absorbance CSV with the standard columns."""
     fieldnames = [
-        "timestamp", "absorbance_od600", "cell_concentration_cells_per_ml",
-        "parent_well", "consider_data",
+        "timestamp",
+        "absorbance_od600",
+        "cell_concentration_cells_per_ml",
+        "parent_well",
+        "consider_data",
     ]
     with open(path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -47,19 +50,22 @@ def _make_exponential_rows(
         elapsed_h = (i * interval_min) / 60.0
         od = od_start * math.exp(growth_rate * elapsed_h)
         ts = f"2025-10-25T{18 + i // 4:02d}:{(i % 4) * 15:02d}:00.000000-0800"
-        rows.append({
-            "timestamp": ts,
-            "absorbance_od600": f"{od:.6f}",
-            "cell_concentration_cells_per_ml": str(int(od * 1e9)),
-            "parent_well": parent_well,
-            "consider_data": str(consider_data),
-        })
+        rows.append(
+            {
+                "timestamp": ts,
+                "absorbance_od600": f"{od:.6f}",
+                "cell_concentration_cells_per_ml": str(int(od * 1e9)),
+                "parent_well": parent_well,
+                "consider_data": str(consider_data),
+            }
+        )
     return rows
 
 
 # ---------------------------------------------------------------------------
 # fit_exponential_growth
 # ---------------------------------------------------------------------------
+
 
 class TestFitExponentialGrowth:
     """Tests for the exponential curve fitting function."""
@@ -79,7 +85,7 @@ class TestFitExponentialGrowth:
         t = np.linspace(0, 10, 20)
         od = np.full_like(t, 0.5)
 
-        rate, dt, r2 = fit_exponential_growth(t, od)
+        rate, dt, _r2 = fit_exponential_growth(t, od)
 
         assert rate == pytest.approx(0.0, abs=1e-10)
         assert dt is None
@@ -88,7 +94,7 @@ class TestFitExponentialGrowth:
         t = np.linspace(0, 10, 20)
         od = 0.5 * np.exp(-0.05 * t)
 
-        rate, dt, r2 = fit_exponential_growth(t, od)
+        rate, dt, _r2 = fit_exponential_growth(t, od)
 
         assert rate < 0
         assert dt is None
@@ -112,7 +118,7 @@ class TestFitExponentialGrowth:
         t = np.array([0, 1, 2, 3, 4])
         od = np.array([0.0, 0.1, 0.0, 0.2, 0.3])
 
-        rate, dt, r2 = fit_exponential_growth(t, od)
+        rate, _dt, r2 = fit_exponential_growth(t, od)
 
         assert rate != 0.0
         assert r2 > 0
@@ -122,20 +128,33 @@ class TestFitExponentialGrowth:
 # load_od_data
 # ---------------------------------------------------------------------------
 
+
 class TestLoadOdData:
     """Tests for CSV loading, filtering, and sorting."""
 
     def test_filters_consider_data(self, tmp_path: Path):
         rows = [
-            {"timestamp": "2025-10-25T18:00:00.000000-0800", "absorbance_od600": "0.1",
-             "cell_concentration_cells_per_ml": "100000000", "parent_well": "stock",
-             "consider_data": "False"},
-            {"timestamp": "2025-10-25T18:15:00.000000-0800", "absorbance_od600": "0.2",
-             "cell_concentration_cells_per_ml": "200000000", "parent_well": "stock",
-             "consider_data": "True"},
-            {"timestamp": "2025-10-25T18:30:00.000000-0800", "absorbance_od600": "0.3",
-             "cell_concentration_cells_per_ml": "300000000", "parent_well": "stock",
-             "consider_data": "True"},
+            {
+                "timestamp": "2025-10-25T18:00:00.000000-0800",
+                "absorbance_od600": "0.1",
+                "cell_concentration_cells_per_ml": "100000000",
+                "parent_well": "stock",
+                "consider_data": "False",
+            },
+            {
+                "timestamp": "2025-10-25T18:15:00.000000-0800",
+                "absorbance_od600": "0.2",
+                "cell_concentration_cells_per_ml": "200000000",
+                "parent_well": "stock",
+                "consider_data": "True",
+            },
+            {
+                "timestamp": "2025-10-25T18:30:00.000000-0800",
+                "absorbance_od600": "0.3",
+                "cell_concentration_cells_per_ml": "300000000",
+                "parent_well": "stock",
+                "consider_data": "True",
+            },
         ]
         csv_path = tmp_path / "well_A1_absorbance.csv"
         _write_well_csv(csv_path, rows)
@@ -150,15 +169,27 @@ class TestLoadOdData:
     def test_sorts_by_timestamp(self, tmp_path: Path):
         """Data not in chronological order should be sorted."""
         rows = [
-            {"timestamp": "2025-10-25T19:00:00.000000-0800", "absorbance_od600": "0.3",
-             "cell_concentration_cells_per_ml": "300000000", "parent_well": "A1",
-             "consider_data": "True"},
-            {"timestamp": "2025-10-25T18:00:00.000000-0800", "absorbance_od600": "0.1",
-             "cell_concentration_cells_per_ml": "100000000", "parent_well": "A1",
-             "consider_data": "True"},
-            {"timestamp": "2025-10-25T18:30:00.000000-0800", "absorbance_od600": "0.2",
-             "cell_concentration_cells_per_ml": "200000000", "parent_well": "A1",
-             "consider_data": "True"},
+            {
+                "timestamp": "2025-10-25T19:00:00.000000-0800",
+                "absorbance_od600": "0.3",
+                "cell_concentration_cells_per_ml": "300000000",
+                "parent_well": "A1",
+                "consider_data": "True",
+            },
+            {
+                "timestamp": "2025-10-25T18:00:00.000000-0800",
+                "absorbance_od600": "0.1",
+                "cell_concentration_cells_per_ml": "100000000",
+                "parent_well": "A1",
+                "consider_data": "True",
+            },
+            {
+                "timestamp": "2025-10-25T18:30:00.000000-0800",
+                "absorbance_od600": "0.2",
+                "cell_concentration_cells_per_ml": "200000000",
+                "parent_well": "A1",
+                "consider_data": "True",
+            },
         ]
         csv_path = tmp_path / "well_B1_absorbance.csv"
         _write_well_csv(csv_path, rows)
@@ -175,14 +206,18 @@ class TestLoadOdData:
 
     def test_all_filtered_out_returns_empty(self, tmp_path: Path):
         rows = [
-            {"timestamp": "2025-10-25T18:00:00.000000-0800", "absorbance_od600": "0.1",
-             "cell_concentration_cells_per_ml": "100000000", "parent_well": "stock",
-             "consider_data": "False"},
+            {
+                "timestamp": "2025-10-25T18:00:00.000000-0800",
+                "absorbance_od600": "0.1",
+                "cell_concentration_cells_per_ml": "100000000",
+                "parent_well": "stock",
+                "consider_data": "False",
+            },
         ]
         csv_path = tmp_path / "well_C1_absorbance.csv"
         _write_well_csv(csv_path, rows)
 
-        elapsed, od, parent = load_od_data(csv_path)
+        elapsed, od, _parent = load_od_data(csv_path)
 
         assert len(elapsed) == 0
         assert len(od) == 0
@@ -190,17 +225,25 @@ class TestLoadOdData:
     def test_handles_timezone_with_colon(self, tmp_path: Path):
         """Real data uses both -0800 and -08:00 formats."""
         rows = [
-            {"timestamp": "2025-10-25T18:00:00.000000-08:00", "absorbance_od600": "0.1",
-             "cell_concentration_cells_per_ml": "100000000", "parent_well": "stock",
-             "consider_data": "True"},
-            {"timestamp": "2025-10-25T18:15:00.000000-08:00", "absorbance_od600": "0.2",
-             "cell_concentration_cells_per_ml": "200000000", "parent_well": "stock",
-             "consider_data": "True"},
+            {
+                "timestamp": "2025-10-25T18:00:00.000000-08:00",
+                "absorbance_od600": "0.1",
+                "cell_concentration_cells_per_ml": "100000000",
+                "parent_well": "stock",
+                "consider_data": "True",
+            },
+            {
+                "timestamp": "2025-10-25T18:15:00.000000-08:00",
+                "absorbance_od600": "0.2",
+                "cell_concentration_cells_per_ml": "200000000",
+                "parent_well": "stock",
+                "consider_data": "True",
+            },
         ]
         csv_path = tmp_path / "well_D1_absorbance.csv"
         _write_well_csv(csv_path, rows)
 
-        elapsed, od, parent = load_od_data(csv_path)
+        elapsed, _od, _parent = load_od_data(csv_path)
 
         assert len(elapsed) == 2
         assert elapsed[1] == pytest.approx(0.25)
@@ -209,6 +252,7 @@ class TestLoadOdData:
 # ---------------------------------------------------------------------------
 # run (integration)
 # ---------------------------------------------------------------------------
+
 
 def _setup_iteration_dir(
     tmp_path: Path,
@@ -268,14 +312,20 @@ class TestRunIntegration:
         assert written["iteration_id"] == "iter_test"
         assert len(written["results"]) == 2
         required_keys = {
-            "well", "parent_well", "params", "growth_rate",
-            "doubling_time_hours", "r_squared", "n_datapoints", "time_range_hours",
+            "well",
+            "parent_well",
+            "params",
+            "growth_rate",
+            "doubling_time_hours",
+            "r_squared",
+            "n_datapoints",
+            "time_range_hours",
         }
         for result in written["results"]:
             assert required_keys <= set(result.keys())
 
     def test_well_csv_without_design_mapping(self, tmp_path: Path):
-        """A well CSV with no matching design entry should still produce a result with empty params."""
+        """A well CSV with no matching design entry produces a result with empty params."""
         iter_dir = _setup_iteration_dir(
             tmp_path,
             well_configs={
@@ -351,6 +401,7 @@ class TestRunIntegration:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 class TestCLI:
     """Tests for the command-line interface."""
 
@@ -364,6 +415,7 @@ class TestCLI:
         monkeypatch.setattr("sys.argv", ["cli", str(iter_dir)])
 
         from src.parser.cli import main
+
         main()
 
         captured = capsys.readouterr()
@@ -374,6 +426,7 @@ class TestCLI:
         monkeypatch.setattr("sys.argv", ["cli", "/nonexistent/path"])
 
         from src.parser.cli import main
+
         with pytest.raises(SystemExit) as exc_info:
             main()
 
@@ -389,6 +442,7 @@ class TestCLI:
         monkeypatch.setattr("sys.argv", ["cli", str(iter_dir), "-v"])
 
         from src.parser.cli import main
+
         main()
 
         captured = capsys.readouterr()
@@ -398,6 +452,7 @@ class TestCLI:
 # ---------------------------------------------------------------------------
 # Smoke test with full 96-well mock data
 # ---------------------------------------------------------------------------
+
 
 class TestSmokeFullPlate:
     """Smoke test with a full 96-well plate generated into tmp_path."""
@@ -412,6 +467,7 @@ class TestSmokeFullPlate:
         (iter_dir / "output").mkdir(parents=True)
 
         import random as rand_mod
+
         rng = rand_mod.Random(99)
         designs = []
         for row in self.ROWS:
@@ -420,14 +476,20 @@ class TestSmokeFullPlate:
                 parent = "stock" if col == 1 else f"{row}1"
                 rate = rng.uniform(0.02, 0.15)
                 rows = _make_exponential_rows(
-                    growth_rate=rate, parent_well=parent,
+                    growth_rate=rate,
+                    parent_well=parent,
                 )
                 _write_well_csv(iter_dir / "output" / f"well_{well}_absorbance.csv", rows)
-                designs.append({"well": well, "params": {
-                    "cell_volume_uL": round(rng.uniform(20, 80), 1),
-                    "mix_height_mm": round(rng.uniform(1, 4), 1),
-                    "mix_reps": round(rng.uniform(1, 5), 1),
-                }})
+                designs.append(
+                    {
+                        "well": well,
+                        "params": {
+                            "cell_volume_uL": round(rng.uniform(20, 80), 1),
+                            "mix_height_mm": round(rng.uniform(1, 4), 1),
+                            "mix_reps": round(rng.uniform(1, 5), 1),
+                        },
+                    }
+                )
 
         _write_design_mapping(iter_dir / "input" / "well_to_design_mapping.json", designs)
         return iter_dir

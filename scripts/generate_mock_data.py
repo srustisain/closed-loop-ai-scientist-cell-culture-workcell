@@ -95,19 +95,27 @@ def generate_well_csv(well_name: str, config: dict, rng: random.Random) -> None:
         in_exponential = i >= LAG_READINGS
         cell_conc = int(od * 1e9)
 
-        rows.append({
-            "timestamp": ts.strftime("%Y-%m-%dT%H:%M:%S.%f%z"),
-            "absorbance_od600": f"{od:.4f}",
-            "cell_concentration_cells_per_ml": str(cell_conc),
-            "parent_well": config["parent_well"],
-            "consider_data": str(in_exponential),
-        })
+        rows.append(
+            {
+                "timestamp": ts.strftime("%Y-%m-%dT%H:%M:%S.%f%z"),
+                "absorbance_od600": f"{od:.4f}",
+                "cell_concentration_cells_per_ml": str(cell_conc),
+                "parent_well": config["parent_well"],
+                "consider_data": str(in_exponential),
+            }
+        )
 
     with open(output_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=[
-            "timestamp", "absorbance_od600", "cell_concentration_cells_per_ml",
-            "parent_well", "consider_data",
-        ])
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "timestamp",
+                "absorbance_od600",
+                "cell_concentration_cells_per_ml",
+                "parent_well",
+                "consider_data",
+            ],
+        )
         writer.writeheader()
         writer.writerows(rows)
 

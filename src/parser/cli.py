@@ -30,7 +30,8 @@ def main() -> None:
         help="Path to the iteration directory (e.g. data/iterations/iter_001)",
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Enable verbose logging",
     )

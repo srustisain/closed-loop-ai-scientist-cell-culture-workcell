@@ -26,7 +26,6 @@ import math
 from datetime import datetime
 from glob import glob
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 import numpy as np
 from scipy import stats
@@ -36,7 +35,7 @@ from src.parser.models import DesignMapping, IterationMetrics, WellResult
 logger = logging.getLogger(__name__)
 
 
-def load_od_data(csv_path: Path) -> Tuple[np.ndarray, np.ndarray, str]:
+def load_od_data(csv_path: Path) -> tuple[np.ndarray, np.ndarray, str]:
     """Read a single well's absorbance CSV and return valid data points.
 
     Filters to rows where consider_data=True, sorts by timestamp, and
@@ -88,7 +87,7 @@ def _parse_timestamp(ts_str: str) -> datetime:
 
 def fit_exponential_growth(
     elapsed_hours: np.ndarray, od_values: np.ndarray
-) -> Tuple[float, Optional[float], float]:
+) -> tuple[float, float | None, float]:
     """Fit an exponential growth model to OD time series data.
 
     Performs linear regression on ln(OD) vs time. The slope of that line
@@ -121,7 +120,7 @@ def fit_exponential_growth(
     slope, _intercept, r_value, _p_value, _std_err = stats.linregress(t, ln_od)
 
     growth_rate = float(slope)
-    r_squared = float(r_value ** 2)
+    r_squared = float(r_value**2)
     doubling_time = float(math.log(2) / growth_rate) if growth_rate > 0 else None
 
     return growth_rate, doubling_time, r_squared
@@ -172,7 +171,7 @@ def run(iteration_dir: str | Path) -> IterationMetrics:
             f"No well_*_absorbance.csv files found in {iteration_dir / 'output'}"
         )
 
-    results: List[WellResult] = []
+    results: list[WellResult] = []
 
     for csv_path in csv_files:
         csv_path = Path(csv_path)
@@ -184,9 +183,7 @@ def run(iteration_dir: str | Path) -> IterationMetrics:
             logger.warning("Well %s: fewer than 2 valid datapoints, skipping", well_name)
             continue
 
-        growth_rate, doubling_time, r_squared = fit_exponential_growth(
-            elapsed_hours, od_values
-        )
+        growth_rate, doubling_time, r_squared = fit_exponential_growth(elapsed_hours, od_values)
 
         time_range = float(elapsed_hours[-1] - elapsed_hours[0])
         params = params_by_well.get(well_name, {})
@@ -214,8 +211,6 @@ def run(iteration_dir: str | Path) -> IterationMetrics:
     output_path = analysis_dir / "growth_metrics.json"
     output_path.write_text(metrics.model_dump_json(indent=2))
 
-    logger.info(
-        "Wrote growth metrics for %d wells to %s", len(results), output_path
-    )
+    logger.info("Wrote growth metrics for %d wells to %s", len(results), output_path)
 
     return metrics
