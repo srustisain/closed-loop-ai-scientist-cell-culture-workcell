@@ -8,3 +8,23 @@ dependencies = [
     "scipy",
     "pydantic",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=src/parser --cov-report=term-missing --cov-fail-under=90"
+
+[tool.coverage.run]
+source = ["src/parser"]
+omit = ["src/parser/__main__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "if __name__",
+    "pragma: no cover",
+]

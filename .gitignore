@@ -232,3 +232,10 @@ datasets/
 *.rej
 .history/
 .ionide/
+
+# ===================
+# Project-specific
+# ===================
+
+# Generated mock/experiment data (use scripts/generate_mock_data.py to recreate)
+data/iterations/
