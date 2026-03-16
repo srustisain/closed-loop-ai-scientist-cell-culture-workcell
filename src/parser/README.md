@@ -90,6 +90,7 @@ This format matches the data retrieved from the Monomer platereader via MCP (see
       "growth_rate": 0.1192,
       "doubling_time_hours": 5.8,
       "r_squared": 0.994,
+      "max_od": 0.8734,
       "n_datapoints": 35,
       "time_range_hours": 8.5
     }
@@ -104,6 +105,7 @@ This format matches the data retrieved from the Monomer platereader via MCP (see
 | `growth_rate` (1/h) | Slope of ln(OD) vs time. From OD(t) = OD_0 * e^(mu*t), mu is the growth rate. | **Primary optimization target** -- higher = faster growth. |
 | `doubling_time_hours` | ln(2) / growth_rate | Human-readable equivalent. Useful for sanity-checking against literature. |
 | `r_squared` (0-1) | R-squared of the linear fit on log-transformed OD data. | **Data quality flag** -- above 0.95 is reliable, below 0.8 is suspect. |
+| `max_od` | Highest OD600 reading observed in the valid data window. | **Second optimization target** for multi-objective BO -- higher = more biomass. |
 | `n_datapoints` | Number of valid (`consider_data=True`) readings used. | Context for how much data backs the estimate. |
 | `time_range_hours` | Time span of valid data. | Context for the observation window. |
 

@@ -302,6 +302,7 @@ class TestRunIntegration:
         assert a1.params == {"cell_volume_uL": 40, "mix_height_mm": 1}
         assert a1.r_squared > 0.99
         assert a1.doubling_time_hours is not None
+        assert a1.max_od > a1.growth_rate  # max OD should be meaningfully large
         assert a1.n_datapoints == 20
         assert a1.time_range_hours > 0
 
@@ -318,6 +319,7 @@ class TestRunIntegration:
             "growth_rate",
             "doubling_time_hours",
             "r_squared",
+            "max_od",
             "n_datapoints",
             "time_range_hours",
         }
@@ -383,6 +385,21 @@ class TestRunIntegration:
 
         assert "A1" in wells
         assert "A2" not in wells
+
+    def test_max_od_is_peak_value(self, tmp_path: Path):
+        """max_od should equal the highest OD reading in the valid data."""
+        rate = 0.10
+        iter_dir = _setup_iteration_dir(
+            tmp_path,
+            well_configs={"A1": {"growth_rate": rate, "n_points": 20, "parent_well": "stock"}},
+            design_params={"A1": {"cell_volume_uL": 40}},
+        )
+
+        metrics = run(iter_dir)
+        result = metrics.results[0]
+
+        expected_max = 0.1 * math.exp(rate * (19 * 15 / 60.0))
+        assert result.max_od == pytest.approx(expected_max, rel=1e-4)
 
     def test_no_csvs_raises_error(self, tmp_path: Path):
         iter_dir = tmp_path / "iter_empty"
@@ -503,6 +520,7 @@ class TestSmokeFullPlate:
 
         for r in metrics.results:
             assert r.growth_rate != 0.0
+            assert r.max_od > 0
             assert r.n_datapoints > 0
             assert r.time_range_hours > 0
             assert 0 <= r.r_squared <= 1.0

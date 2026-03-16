@@ -301,6 +301,7 @@ Cells go through a lag phase (slow/no growth), an exponential phase (dividing at
 | Metric | Definition | Purpose |
 |--------|------------|---------|
 | Growth rate (`growth_rate`, 1/hour) | Slope of ln(OD) vs time during exponential phase. From the model OD(t) = OD_0 * e^(mu*t), mu is the growth rate. | **Primary optimization target**: higher = faster cell division. This is the number the Bayesian optimizer maximizes. |
+| Max OD (`max_od`) | Highest OD600 reading observed during the valid data window. Represents peak cell density achieved. | **Second optimization target** for multi-objective BO: higher = more total biomass. Can trade off against growth rate (e.g., high glucose may give fast initial growth but acid crash lowers final OD). |
 | Doubling time (`doubling_time_hours`) | ln(2) / growth_rate. How long it takes the population to double. | Human-interpretable equivalent of growth rate. Useful for sanity-checking against known literature values. |
 | R-squared (`r_squared`, 0-1) | Coefficient of determination for the linear regression on ln(OD) vs time. | **Data quality indicator**. Above ~0.95 = reliable estimate. Below ~0.8 = suspect (well may not have entered exponential phase). Lets the optimizer down-weight unreliable wells. |
 

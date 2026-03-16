@@ -13,7 +13,7 @@ Terminology
 
 Growth Metrics
 --------------
-The parser computes three values per well from the OD600 time series:
+The parser computes the following values per well from the OD600 time series:
 
 - **growth_rate** (1/hour): The specific growth rate (mu) during exponential
   phase. Cells in exponential phase follow OD(t) = OD_0 * e^(mu*t). We compute
@@ -33,6 +33,12 @@ The parser computes three values per well from the OD600 time series:
   data window includes lag/stationary phase. This is a **data quality
   indicator** -- it flags unreliable wells so the optimizer can down-weight
   or exclude them.
+
+- **max_od** (float): The highest OD600 reading observed during the valid
+  data window. Represents the peak cell density achieved in the well.
+  **Second optimization target** for multi-objective BO: higher max_od =
+  more total biomass produced. Can trade off against growth_rate (e.g.,
+  high glucose may give fast initial growth but acid crash lowers final OD).
 """
 
 from __future__ import annotations
@@ -90,6 +96,10 @@ class WellResult(BaseModel):
     r_squared: float = Field(
         description="R-squared of the exponential fit (0-1). "
         "Data quality indicator: >0.95 = reliable, <0.8 = suspect."
+    )
+    max_od: float = Field(
+        description="Peak OD600 observed during valid data window. "
+        "Second optimization target for multi-objective BO: higher = more biomass."
     )
     n_datapoints: int = Field(description="Number of valid OD readings used in the fit")
     time_range_hours: float = Field(description="Time span of valid data in hours")

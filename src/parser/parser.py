@@ -185,6 +185,7 @@ def run(iteration_dir: str | Path) -> IterationMetrics:
 
         growth_rate, doubling_time, r_squared = fit_exponential_growth(elapsed_hours, od_values)
 
+        max_od = float(np.max(od_values))
         time_range = float(elapsed_hours[-1] - elapsed_hours[0])
         params = params_by_well.get(well_name, {})
 
@@ -199,6 +200,7 @@ def run(iteration_dir: str | Path) -> IterationMetrics:
                 growth_rate=growth_rate,
                 doubling_time_hours=doubling_time,
                 r_squared=r_squared,
+                max_od=max_od,
                 n_datapoints=len(elapsed_hours),
                 time_range_hours=time_range,
             )
