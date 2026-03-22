@@ -1,12 +1,13 @@
-import { useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlateHeatmap } from '@/components/plate/PlateHeatmap';
 import { WellDetailPanel } from '@/components/plate/WellDetailPanel';
 import { MetricDefinitionButton } from '@/components/charts/MetricDefinitionButton';
-import { useIteration } from '@/api/client';
+import { useIteration, useIterations } from '@/api/client';
+import { sortIterationIds } from '@/components/dashboard/DashboardIterationFilter';
 import { ApiErrorState } from '@/components/feedback/ApiErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { bestWellForMetric, meanMetricValue } from '@/lib/metrics';
@@ -15,9 +16,29 @@ import { METRIC_LABELS } from '@/types';
 
 export function IterationView() {
   const { iterationId } = useParams<{ iterationId: string }>();
+  const navigate = useNavigate();
+  const { data: iterationSummaries } = useIterations();
   const { data: iteration, isLoading, error, refetch } = useIteration(iterationId ?? '');
   const [selectedWell, setSelectedWell] = useState<string | null>(null);
   const [metric, setMetric] = useState<MetricKey>('growth_rate');
+
+  const iterationOptions = useMemo(() => {
+    const ids = [...(iterationSummaries?.map((s) => s.iteration_id) ?? [])];
+    if (iterationId && !ids.includes(iterationId)) {
+      ids.push(iterationId);
+    }
+    return sortIterationIds(ids);
+  }, [iterationSummaries, iterationId]);
+
+  useEffect(() => {
+    setSelectedWell(null);
+  }, [iterationId]);
+
+  const onIterationChange = (id: string | null) => {
+    if (!id) return;
+    setSelectedWell(null);
+    void navigate(`/iterations/${encodeURIComponent(id)}`);
+  };
 
   const selectedWellData = useMemo(() => {
     if (!selectedWell || !iteration) return null;
@@ -57,16 +78,58 @@ export function IterationView() {
 
   if (!iteration) {
     return (
-      <EmptyState
-        title="Iteration"
-        description="No data found for this iteration. Check the URL or ensure the parser has run."
-      />
+      <div className="space-y-6">
+        <EmptyState
+          title="Iteration"
+          description="No data found for this iteration. Check the URL or ensure the parser has run."
+        />
+        {iterationOptions.length > 0 ? (
+          <div className="flex max-w-md flex-col gap-2">
+            <span className="text-sm font-medium text-foreground">Open another iteration</span>
+            <Select onValueChange={onIterationChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select iteration" />
+              </SelectTrigger>
+              <SelectContent>
+                {iterationOptions.map((id) => (
+                  <SelectItem key={id} value={id}>
+                    {id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Iteration: {iteration.iteration_id}</h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+        <h2 className="text-xl font-semibold">Iteration</h2>
+        {iterationOptions.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="iteration-view-select" className="sr-only">
+              Choose iteration
+            </label>
+            <Select value={iteration.iteration_id} onValueChange={onIterationChange}>
+              <SelectTrigger id="iteration-view-select" className="w-[min(100%,22rem)] h-10 text-base">
+                <SelectValue placeholder="Select iteration" />
+              </SelectTrigger>
+              <SelectContent>
+                {iterationOptions.map((id) => (
+                  <SelectItem key={id} value={id}>
+                    {id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <p className="text-lg font-medium text-foreground tabular-nums">{iteration.iteration_id}</p>
+        )}
+      </div>
 
       {/* Summary stats (follow selected metric) */}
       <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
