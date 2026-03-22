@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { OverviewMetricsSection } from '@/components/charts/OverviewMetricsSection';
 import { OptimizationMetricsSection } from '@/components/charts/OptimizationMetricsSection';
 import { useIterations, useIterationsBatch } from '@/api/client';
 import { ApiErrorState } from '@/components/feedback/ApiErrorState';
@@ -131,11 +133,22 @@ export function Dashboard() {
         />
       ) : detailLoading ? (
         <div className="space-y-4">
-          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-10 w-full max-w-md" />
           <Skeleton className="min-h-[1100px] w-full" />
         </div>
       ) : metricsOrdered.length === summaries.length ? (
-        <OptimizationMetricsSection iterations={metricsOrdered} />
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="mb-4 h-9 w-fit max-w-full">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="detailed">Detailed</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview" className="mt-0">
+            <OverviewMetricsSection iterations={metricsOrdered} />
+          </TabsContent>
+          <TabsContent value="detailed" className="mt-0">
+            <OptimizationMetricsSection iterations={metricsOrdered} />
+          </TabsContent>
+        </Tabs>
       ) : (
         <ApiErrorState
           title="Incomplete iteration data"

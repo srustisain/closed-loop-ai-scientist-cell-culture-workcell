@@ -7,16 +7,16 @@ type Props = {
   iterations: IterationMetrics[];
 };
 
-/** Per-iteration distributions (all wells) plus best-well markers for each dashboard metric. */
+/** Distributions per iteration (violins) for each metric. */
 export function OptimizationMetricsSection({ iterations }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Optimization progress</CardTitle>
+        <CardTitle className="text-sm">Detailed view: distribution per iteration</CardTitle>
         <p className="text-xs text-muted-foreground font-normal leading-relaxed">
-          Each blue dot is one well (jittered so overlaps are visible). Hover a dot for its value. The
-          shaded shape is the overall distribution; orange diamonds mark the best well per iteration
-          (highest growth rate, max OD, and R²; lowest doubling time).
+          One violin per iteration with all wells shown as points. Iteration colors match the Overview
+          tab. Diamonds mark the best well per iteration (highest growth rate, max OD, and R²; lowest
+          doubling time).
         </p>
       </CardHeader>
       <CardContent className="space-y-10">

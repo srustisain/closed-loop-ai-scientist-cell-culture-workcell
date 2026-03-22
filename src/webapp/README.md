@@ -82,7 +82,9 @@ frontend/                            # React app (lives at project root)
         │   └── WellDetailPanel.tsx   # Side panel: metrics + OD curve
         ├── charts/
         │   ├── OdCurveChart.tsx
-        │   ├── OptimizationMetricsSection.tsx  # Dashboard: four metric violins
+        │   ├── OverviewMetricsSection.tsx      # Dashboard default: 2D metric vs metric scatter
+        │   ├── MetricPairOverview.tsx
+        │   ├── OptimizationMetricsSection.tsx  # Dashboard detailed: violins
         │   └── MetricViolinDistribution.tsx
         ├── layout/
         │   ├── AppShell.tsx          # Sidebar + header + content area
