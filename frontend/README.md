@@ -1,5 +1,21 @@
 # React + TypeScript + Vite
 
+## Python API tests (from this folder)
+
+The FastAPI tests live in `../tests/`. If you run `uv run pytest` **here**, pytest only searches `frontend/` and will collect nothing. Use the repo root or `uv`’s project directory:
+
+```bash
+uv run --directory .. pytest tests/test_webapp_api.py -q --no-cov   # API tests, no coverage report
+uv run --directory .. pytest --cov-fail-under=88 -q                 # full Python suite (CI parity)
+# or:
+npm run test:api
+npm run test:python
+```
+
+(`--no-cov` on API-only runs avoids a low combined % from measuring `src/parser` when those tests never import it.)
+
+---
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

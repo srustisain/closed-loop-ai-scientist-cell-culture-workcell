@@ -1,11 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import {
-  invertedTip,
-  WellDesignParamList,
-  WellTooltipSection,
-} from '@/components/wells/wellTooltipContent';
+import { WellDesignParamList, WellTooltipSection } from '@/components/wells/wellTooltipContent';
+import { invertedTip } from '@/components/wells/wellTooltipTokens';
 import { formatDesignParamsInline } from '@/lib/wellDesign';
 import { useIteration } from '@/api/client';
 

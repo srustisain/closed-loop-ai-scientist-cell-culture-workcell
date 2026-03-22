@@ -9,7 +9,7 @@ import { MetricDefinitionButton } from '@/components/charts/MetricDefinitionButt
 import { PageHeader } from '@/components/layout/PageHeader';
 import { WellDesignInline, WellIdWithDesign } from '@/components/wells/WellIdWithDesign';
 import { useIteration, useIterations } from '@/api/client';
-import { sortIterationIds } from '@/components/dashboard/DashboardIterationFilter';
+import { sortIterationIds } from '@/lib/sortIterationIds';
 import { ApiErrorState } from '@/components/feedback/ApiErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { bestWellForMetric, meanMetricValue } from '@/lib/metrics';

@@ -9,15 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-export function sortIterationIds(ids: string[]): string[] {
-  return [...ids].sort((a, b) => {
-    const na = parseInt(a.replace(/\D/g, ''), 10) || 0;
-    const nb = parseInt(b.replace(/\D/g, ''), 10) || 0;
-    if (na !== nb) return na - nb;
-    return a.localeCompare(b);
-  });
-}
+import { sortIterationIds } from '@/lib/sortIterationIds';
 
 type Props = {
   iterationIds: string[];

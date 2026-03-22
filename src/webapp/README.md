@@ -155,3 +155,28 @@ npm run dev
 2. **Dashboard + History.** Summary cards, per-metric violin charts, iteration table, sidebar navigation.
 3. **Workcell Status + Compare.** WebSocket for Monomer MCP status, comparison page.
 4. **Polish.** Loading states, error boundaries, shared empty/error UI, API tests (`tests/test_webapp_api.py`), coverage for `src/webapp`.
+
+## Quality checks
+
+From the **repository root**:
+
+| Check | Command |
+|-------|---------|
+| Ruff (includes `src/webapp`) | `uv run ruff check .` |
+| Ruff format | `uv run ruff format --check .` |
+| Mypy (`src/` including webapp) | `uv run mypy src/` |
+| API tests only (from repo root) | `uv run pytest tests/test_webapp_api.py -q --no-cov` |
+| API tests from `frontend/` | `uv run --directory .. pytest tests/test_webapp_api.py -q --no-cov` or `npm run test:api` |
+| Full test suite + coverage (enforced ≥88%) | `uv run pytest --cov-fail-under=88` |
+| Full test suite, coverage report only | `uv run pytest` |
+
+From **`frontend/`** (after `npm ci`):
+
+| Check | Command |
+|-------|---------|
+| ESLint | `npm run lint` |
+| Typecheck + production build | `npm run build` |
+| API tests only | `npm run test:api` |
+| Full Python suite (≥88% coverage) | `npm run test:python` |
+
+Pre-commit runs Ruff, Ruff format, mypy, pytest, and frontend ESLint when relevant paths change. CI mirrors these steps; see `.github/workflows/ci.yml`.

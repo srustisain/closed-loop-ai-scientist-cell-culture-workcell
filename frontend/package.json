@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:api": "uv run --directory .. pytest tests/test_webapp_api.py -q --no-cov",
+    "test:python": "uv run --directory .. pytest --cov-fail-under=88 -q"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

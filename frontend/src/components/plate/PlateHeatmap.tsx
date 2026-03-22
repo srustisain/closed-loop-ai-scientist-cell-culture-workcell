@@ -3,11 +3,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils';
 import { bestWellForMetric, getMetricNumericValue, metricGoodness } from '@/lib/metrics';
 import { WellIdWithDesign } from '@/components/wells/WellIdWithDesign';
-import {
-  invertedTip,
-  WellDesignParamList,
-  WellTooltipSection,
-} from '@/components/wells/wellTooltipContent';
+import { WellDesignParamList, WellTooltipSection } from '@/components/wells/wellTooltipContent';
+import { invertedTip } from '@/components/wells/wellTooltipTokens';
 import type { WellResult, MetricKey } from '@/types';
 import { METRIC_LABELS } from '@/types';
 
