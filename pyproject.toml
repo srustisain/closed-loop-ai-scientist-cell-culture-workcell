@@ -7,6 +7,8 @@ dependencies = [
     "numpy",
     "scipy",
     "pydantic",
+    "fastapi",
+    "uvicorn[standard]",
 ]
 
 [dependency-groups]
