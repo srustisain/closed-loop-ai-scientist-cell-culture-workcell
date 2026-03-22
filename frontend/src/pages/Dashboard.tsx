@@ -1,15 +1,42 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useIterations } from '@/api/client';
-import { OptimizationProgress } from '@/components/charts/OptimizationProgress';
+import { OptimizationMetricsSection } from '@/components/charts/OptimizationMetricsSection';
+import { useIterations, useIterationsBatch } from '@/api/client';
 import { ApiErrorState } from '@/components/feedback/ApiErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import type { IterationMetrics } from '@/types';
 
 export function Dashboard() {
-  const { data: iterations, isLoading, error, refetch } = useIterations();
+  const queryClient = useQueryClient();
+  const { data: summaries, isLoading: listLoading, error: listError, refetch: refetchList } =
+    useIterations();
 
-  if (isLoading) {
+  const iterationIds = useMemo(() => summaries?.map((s) => s.iteration_id) ?? [], [summaries]);
+  const batch = useIterationsBatch(iterationIds);
+
+  const metricsOrdered = useMemo((): IterationMetrics[] => {
+    if (!summaries?.length) return [];
+    const out: IterationMetrics[] = [];
+    for (const s of summaries) {
+      const hit = batch.find((q) => q.data?.iteration_id === s.iteration_id);
+      if (!hit?.data) return [];
+      out.push(hit.data);
+    }
+    return out;
+  }, [summaries, batch]);
+
+  const detailLoading = summaries != null && summaries.length > 0 && batch.some((q) => q.isLoading);
+  const detailError = batch.find((q) => q.error)?.error;
+
+  const retryCharts = () => {
+    void refetchList();
+    void queryClient.invalidateQueries({ queryKey: ['iteration'] });
+  };
+
+  if (listLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-40" />
@@ -18,23 +45,23 @@ export function Dashboard() {
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
         </div>
-        <Skeleton className="h-[320px] w-full" />
+        <Skeleton className="min-h-[1200px] w-full" />
       </div>
     );
   }
 
-  if (error) {
+  if (listError) {
     return (
       <ApiErrorState
-        message={(error as Error).message}
+        message={(listError as Error).message}
         onRetry={() => {
-          void refetch();
+          void refetchList();
         }}
       />
     );
   }
 
-  if (!iterations || iterations.length === 0) {
+  if (!summaries || summaries.length === 0) {
     return (
       <EmptyState
         title="Dashboard"
@@ -43,17 +70,16 @@ export function Dashboard() {
     );
   }
 
-  const totalIterations = iterations.length;
-  const globalBest = iterations.reduce((best, it) =>
+  const totalIterations = summaries.length;
+  const globalBest = summaries.reduce((best, it) =>
     it.best_growth_rate > best.best_growth_rate ? it : best
   );
-  const latest = iterations[iterations.length - 1];
+  const latest = summaries[summaries.length - 1];
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Dashboard</h2>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -69,7 +95,10 @@ export function Dashboard() {
             <CardTitle className="text-sm text-muted-foreground font-normal">Best Growth Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{globalBest.best_growth_rate.toFixed(4)} <span className="text-base font-normal text-muted-foreground">/h</span></p>
+            <p className="text-3xl font-bold">
+              {globalBest.best_growth_rate.toFixed(4)}{' '}
+              <span className="text-base font-normal text-muted-foreground">/h</span>
+            </p>
             <p className="text-sm text-muted-foreground mt-1">
               Well {globalBest.best_well} in {globalBest.iteration_id}
             </p>
@@ -94,15 +123,26 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Optimization progress chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Optimization Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <OptimizationProgress iterations={iterations} />
-        </CardContent>
-      </Card>
+      {detailError ? (
+        <ApiErrorState
+          title="Could not load iteration details for charts"
+          message={(detailError as Error).message}
+          onRetry={retryCharts}
+        />
+      ) : detailLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="min-h-[1100px] w-full" />
+        </div>
+      ) : metricsOrdered.length === summaries.length ? (
+        <OptimizationMetricsSection iterations={metricsOrdered} />
+      ) : (
+        <ApiErrorState
+          title="Incomplete iteration data"
+          message="Some iterations could not be loaded."
+          onRetry={retryCharts}
+        />
+      )}
     </div>
   );
 }

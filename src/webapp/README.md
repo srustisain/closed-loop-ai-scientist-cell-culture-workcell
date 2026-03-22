@@ -38,7 +38,7 @@ No dedicated compare endpoint. The Compare page fetches multiple iterations via 
 
 ## Frontend Pages
 
-**Dashboard.** Summary cards (total iterations, best growth rate found, best parameters), live workcell status panel (current phase, elapsed time, progress), optimization progress chart (best growth rate per iteration over time), quick link to the latest iteration.
+**Dashboard.** Summary cards (total iterations, best growth rate, latest iteration link) and four stacked optimization charts (growth rate, max OD, R², doubling time): per-iteration violin distributions over all wells plus best-well markers.
 
 **Iteration View.** The main page. A 96-well plate heatmap colored by a selectable metric (growth rate, max OD, R-squared, doubling time). Clicking a well opens a detail panel with the OD-vs-time chart (raw points plus fitted exponential), growth metrics, and design parameters for that well.
 
@@ -82,7 +82,8 @@ frontend/                            # React app (lives at project root)
         │   └── WellDetailPanel.tsx   # Side panel: metrics + OD curve
         ├── charts/
         │   ├── OdCurveChart.tsx
-        │   └── OptimizationProgress.tsx
+        │   ├── OptimizationMetricsSection.tsx  # Dashboard: four metric violins
+        │   └── MetricViolinDistribution.tsx
         ├── layout/
         │   ├── AppShell.tsx          # Sidebar + header + content area
         │   └── Sidebar.tsx
@@ -149,6 +150,6 @@ npm run dev
 ## Build Order
 
 1. **Backend + Iteration View.** FastAPI routes and services, React scaffold, plate heatmap, well detail panel, OD curve chart.
-2. **Dashboard + History.** Summary cards, optimization progress chart, iteration table, sidebar navigation.
+2. **Dashboard + History.** Summary cards, per-metric violin charts, iteration table, sidebar navigation.
 3. **Workcell Status + Compare.** WebSocket for Monomer MCP status, comparison page.
 4. **Polish.** Loading states, error boundaries, shared empty/error UI, API tests (`tests/test_webapp_api.py`), coverage for `src/webapp`.
