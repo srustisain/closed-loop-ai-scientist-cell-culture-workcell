@@ -1,68 +1,79 @@
-# Data Parser
+# Data parser
 
-Reads per-well OD600 absorbance CSVs from the platereader and the well-to-design mapping from the experiment designer, computes growth metrics for each well, and outputs a single JSON linking design parameters to growth outcomes.
+Reads per-well OD600 CSVs from the platereader and the well-to-design mapping from the experiment designer, fits growth curves, and writes **`growth_metrics.json`** (design parameters linked to growth metrics per well).
 
-## Quick start
+The [webapp](../webapp/README.md) is a read-only HTTP layer over those files.
+
+**Full setup (install `uv` + `npm` deps, run parser, run API + UI):** [root README](../../README.md).
+
+---
+
+## Quick start (parser only)
+
+From the **repository root** (after `uv sync`):
 
 ```bash
-# from the project root
-
-# 1. install dependencies (one-time)
-uv sync
-
-# 2. generate mock 96-well data (for testing)
+# Optional: generate mock 96-well data
 uv run python scripts/generate_mock_data.py
 
-# 3. run the parser
-uv run python -m src.parser.cli data/iterations/iter_001
+# Run the parser on one iteration directory
+uv run python -m src.parser data/iterations/iter_001
 
-# verbose mode
-uv run python -m src.parser.cli data/iterations/iter_001 -v
+# Verbose logging
+uv run python -m src.parser data/iterations/iter_001 -v
 ```
+
+(`python -m src.parser` uses `src/parser/__main__.py`, which delegates to the CLI.)
+
+---
 
 ## What it does
 
 ```
- well_A1_absorbance.csv  ─┐
- well_A2_absorbance.csv  ─┤                      ┌──→ Experiment Designer (BO)
- ...                      ├──→  Data Parser  ──→  │
- well_H12_absorbance.csv ─┤                      └──→ Webapp
- well_to_design_mapping.json ─┘
+ well_A1_absorbance.csv      ─┐
+ well_A2_absorbance.csv      ─┤
+ ...                         ├──→  Data parser  ──→  growth_metrics.json
+ well_H12_absorbance.csv     ─┤                      (plus experiment designer / BO
+ well_to_design_mapping.json ─┘                       consuming the same outputs)
 ```
 
-The platereader CSVs only contain OD readings -- they don't know what experimental parameters were used in each well. The parser joins them with the design mapping so the Bayesian optimizer can learn which parameter combinations produce faster growth.
+Platereader CSVs only contain OD readings; they do not include experimental parameters. The parser joins CSVs with **`well_to_design_mapping.json`** so downstream tools (e.g. Bayesian optimization) can relate conditions to growth.
+
+---
 
 ## Expected directory layout
 
 ```
 data/iterations/iter_001/
 ├── input/
-│   └── well_to_design_mapping.json   # from Experiment Designer
+│   └── well_to_design_mapping.json   # from experiment designer
 ├── output/
-│   ├── well_A1_absorbance.csv        # from platereader (96 files)
+│   ├── well_A1_absorbance.csv        # from platereader (typically 96 files)
 │   ├── well_A2_absorbance.csv
 │   └── ...
 └── analysis/
-    └── growth_metrics.json           # produced by this parser
+    └── growth_metrics.json           # written by this parser
 ```
+
+---
 
 ## Input formats
 
 ### Per-well absorbance CSV
 
-One file per well, named `well_{WELL}_absorbance.csv`:
+One file per well: `well_{WELL}_absorbance.csv`.
 
 | Column | Example | Description |
 |--------|---------|-------------|
 | `timestamp` | `2025-10-25T21:32:45.242355-08:00` | ISO 8601 with timezone |
-| `absorbance_od600` | `0.4274` | Raw OD600 reading |
-| `cell_concentration_cells_per_ml` | `427400000` | Derived cell concentration |
-| `parent_well` | `stock`, `A1` | Which well this was passaged from |
-| `consider_data` | `True` / `False` | Whether this reading is valid for analysis |
+| `absorbance_od600` | `0.4274` | Raw OD600 |
+| `cell_concentration_cells_per_ml` | `427400000` | Derived concentration |
+| `parent_well` | `stock`, `A1` | Passage source |
+| `consider_data` | `True` / `False` | Use row in fitting only if `True` |
 
 Only rows with `consider_data=True` are used for curve fitting.
 
-This format matches the data retrieved from the Monomer platereader via MCP (see [Scale-Me-Maybe sample data](https://github.com/hrahman12/Scale-Me-Maybe/tree/main/data) for reference).
+Example platereader-style dumps: [Scale-Me-Maybe sample data](https://github.com/hrahman12/Scale-Me-Maybe/tree/main/data) (external reference).
 
 ### Well-to-design mapping JSON
 
@@ -75,9 +86,11 @@ This format matches the data retrieved from the Monomer platereader via MCP (see
 }
 ```
 
+---
+
 ## Output format
 
-`growth_metrics.json`:
+**`growth_metrics.json`** (schema: `IterationMetrics` / `WellResult` in `models.py`):
 
 ```json
 {
@@ -98,40 +111,42 @@ This format matches the data retrieved from the Monomer platereader via MCP (see
 }
 ```
 
+---
+
 ## Metrics
 
-| Metric | Definition | Purpose |
-|--------|------------|---------|
-| `growth_rate` (1/h) | Slope of ln(OD) vs time. From OD(t) = OD_0 * e^(mu*t), mu is the growth rate. | **Primary optimization target** -- higher = faster growth. |
-| `doubling_time_hours` | ln(2) / growth_rate | Human-readable equivalent. Useful for sanity-checking against literature. |
-| `r_squared` (0-1) | R-squared of the linear fit on log-transformed OD data. | **Data quality flag** -- above 0.95 is reliable, below 0.8 is suspect. |
-| `max_od` | Highest OD600 reading observed in the valid data window. | **Second optimization target** for multi-objective BO -- higher = more biomass. |
-| `n_datapoints` | Number of valid (`consider_data=True`) readings used. | Context for how much data backs the estimate. |
-| `time_range_hours` | Time span of valid data. | Context for the observation window. |
+| Field | Meaning | Notes |
+|-------|---------|--------|
+| `growth_rate` (1/h) | Slope of ln(OD) vs time (exponential phase) | Primary optimization target: higher = faster growth |
+| `doubling_time_hours` | ln(2) / growth_rate | Intuitive doubling time; `null` if rate ≤ 0 |
+| `r_squared` | Fit quality on log-OD | Data-quality hint; high ≈ reliable fit |
+| `max_od` | Max OD600 in valid window | Secondary target for biomass-oriented BO |
+| `n_datapoints` | Valid points used | Supports confidence in the estimate |
+| `time_range_hours` | Span of valid data | Context for the fit window |
 
-## Tests
+---
 
-| Area | What's tested |
-|------|---------------|
-| **Curve fitting** | Recovers known growth rates (parameterized across 4 rates), flat growth, declining OD, zero/negative values, too few datapoints |
-| **CSV loading** | Filters `consider_data`, sorts out-of-order timestamps, handles both timezone formats (`-0800` and `-08:00`), empty result when all rows filtered |
-| **Integration** | End-to-end with temp directories: correct output schema, well CSV without design mapping (empty params), design mapping without CSV (skipped), well with no valid data (skipped), no CSVs (raises error) |
-| **CLI** | Valid run prints summary, invalid path exits non-zero, verbose flag |
-| **Smoke** | Full 96-well plate generated and parsed, all results checked for sanity |
+## Code layout
 
-Tests use `tmp_path` for isolation -- no test modifies the working directory or depends on pre-existing data.
+| Path | Role |
+|------|------|
+| `models.py` | Pydantic input/output schemas |
+| `parser.py` | Load CSVs + mapping, fit, write JSON |
+| `cli.py` | CLI entrypoint |
+| `__main__.py` | `python -m src.parser` |
 
-See the [root README](../../README.md) for test commands, linting, type checking, pre-commit, and CI setup.
+Tests: `tests/test_parser.py` (see root README for `pytest` commands).
 
-## Code structure
+---
 
-```
-src/parser/
-├── models.py       # Pydantic schemas for inputs and outputs
-├── parser.py       # Core logic: load, link, fit, write
-├── cli.py          # CLI entrypoint
-└── __main__.py     # Enables `python -m src.parser.cli`
+## Tests (overview)
 
-tests/
-└── test_parser.py  # All parser tests (22 tests)
-```
+| Area | Coverage |
+|------|----------|
+| Curve fitting | Known rates (parameterized), flat / declining OD, edge cases (too few points, empty, zeros) |
+| CSV loading | `consider_data`, timestamp sort, timezone variants, all rows filtered |
+| Integration | End-to-end temp dirs: schema, missing mapping/CSV, bad wells skipped, no CSVs → error |
+| CLI | Success path, bad path exit code, `-v` |
+| Smoke | Full 96-well generated data parsed |
+
+Tests use `tmp_path` only; they do not rely on checked-in `data/iterations/` for correctness.

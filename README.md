@@ -1,90 +1,166 @@
-# Development
+# Closed-loop AI scientist — cell culture workcell
 
-## Setup
+**Data parser** — turns per-well OD CSVs + a well-to-design mapping into **`growth_metrics.json`**.  
+**Webapp** — FastAPI serves that data over HTTP; a React UI browses iterations, plates, and charts.
+
+**More detail:** [`src/parser/README.md`](src/parser/README.md) (formats, metrics, layout), [`src/webapp/README.md`](src/webapp/README.md) (API routes, frontend structure).
+
+---
+
+## Quick start
+
+Minimal path from zero to dashboard (see **What you need installed** below if anything is missing):
 
 ```bash
-uv sync                       # install all dependencies
-uv run pre-commit install     # enable pre-commit hooks
+# 1) Repo root: Python + frontend deps
+uv sync
+cd frontend && npm ci && cd ..
+
+# 2) Sample data + parse (skip if you already have data/iterations/…)
+uv run python scripts/generate_mock_data.py
+uv run python -m src.parser data/iterations/iter_001
+
+# 3) API (leave running)
+uv run uvicorn src.webapp.main:app --reload --port 8000
+
+# 4) In another terminal — UI
+cd frontend && npm run dev
 ```
+
+Open **http://localhost:5173** (UI) and **http://localhost:8000/docs** (API). The next sections spell out the same steps with options and notes.
+
+---
+
+## What you need installed
+
+| Tool | Role |
+|------|------|
+| **Python 3.10+** | Parser + API + tests |
+| **[uv](https://docs.astral.sh/uv/)** | Installs Python deps from this repo (`uv sync`, `uv run …`) |
+| **Node.js 18+** and **npm** | Frontend only (`npm ci`, `npm run dev`) |
+
+Clone the repo and work from the **repository root** (the directory that contains `pyproject.toml` and `frontend/`).
+
+---
+
+## Install everything (one time)
+
+```bash
+cd /path/to/closed-loop-ai-scientist-cell-culture-workcell
+
+# Python: runtime + dev tools (pytest, ruff, mypy, httpx, …)
+uv sync
+
+# JavaScript: React app (reproducible lockfile)
+cd frontend && npm ci && cd ..
+```
+
+Optional:
+
+```bash
+uv run pre-commit install   # run lint/tests on git commit
+```
+
+---
+
+## Run the data parser
+
+Writes **`analysis/growth_metrics.json`** under an `iter_*` folder. Input/output layout: [parser README](src/parser/README.md).
+
+```bash
+# Optional: create mock iter_* trees with CSVs + mapping (good for first try)
+uv run python scripts/generate_mock_data.py
+
+# Parse one iteration (argument = path to that iter_* directory)
+uv run python -m src.parser data/iterations/iter_001
+
+# More log output
+uv run python -m src.parser data/iterations/iter_001 -v
+```
+
+Use your own `data/iterations/…` data instead of the mock script when you have it.
+
+---
+
+## Run the dashboard (API + UI)
+
+Uses the same **`data/iterations/`** tree by default (or set **`WEBAPP_DATA_DIR`** — see [webapp README](src/webapp/README.md)). Open **two terminals**, both starting from the **repo root**.
+
+**Terminal 1 — API (FastAPI + Uvicorn)**
+
+```bash
+uv run uvicorn src.webapp.main:app --reload --port 8000
+```
+
+**Terminal 2 — frontend (Vite)**
+
+```bash
+cd frontend && npm run dev
+```
+
+Then:
+
+| URL | What |
+|-----|------|
+| http://localhost:5173 | React app (`/api` requests are proxied to port 8000) |
+| http://localhost:8000/docs | OpenAPI / try-it UI |
+
+---
 
 ## Tests
 
-```bash
-uv run pytest                      # all tests + coverage report (no fail-under; good for subsets)
-uv run pytest --cov-fail-under=88  # full suite with enforced minimum coverage (same as CI)
-uv run pytest -v                   # verbose output
-```
+| Goal | Command |
+|------|---------|
+| Full suite + coverage report (no fail-under) | `uv run pytest` |
+| Full suite + **enforce ≥88%** coverage (same as CI / pre-commit) | `uv run pytest --cov-fail-under=88` |
+| Webapp API tests only (fast, no coverage noise) | `uv run pytest tests/test_webapp_api.py -q --no-cov` |
+| Verbose | `uv run pytest -v` |
 
-To run only webapp API tests:
+**Why `--no-cov` for webapp-only?** Default pytest options measure both `src/parser` and `src/webapp`. Webapp-only runs do not execute the parser, so combined coverage looks low even when tests pass. Use the full suite + `--cov-fail-under=88` for a real gate.
 
-```bash
-uv run pytest tests/test_webapp_api.py -q --no-cov
-```
-
-`--no-cov` avoids a **misleading ~64% total**: default `addopts` still measure `src/parser` + `src/webapp`, but webapp-only tests never run the parser, so combined coverage looks low even though tests passed. For a real coverage gate, run the **full** suite: `uv run pytest --cov-fail-under=88`.
-
-**If your shell is in `frontend/`**, pytest’s config lives one level up, but pytest only applies `testpaths` when you invoke it from the **repository root**. From `frontend/` you must either change directory or tell `uv` to run from the root:
+**From `frontend/`:** Pytest discovers tests only when the working directory is the repo root. Use:
 
 ```bash
-cd .. && uv run pytest tests/test_webapp_api.py -q --no-cov
-# or, from frontend/:
+npm run test:api      # webapp API tests, no cov
+npm run test:python   # full suite + cov-fail-under=88
+# or:
 uv run --directory .. pytest tests/test_webapp_api.py -q --no-cov
-npm run test:api
 ```
 
-Coverage is enforced at **88%** minimum for `src/parser` and `src/webapp` (see `pyproject.toml`).
+Thresholds: [`pyproject.toml`](pyproject.toml).
 
-## Linting and formatting
+---
 
-Uses [ruff](https://docs.astral.sh/ruff/) for both linting and formatting (configured in `pyproject.toml`).
-
-```bash
-uv run ruff check .          # lint
-uv run ruff check --fix .    # lint and auto-fix
-uv run ruff format .         # format (black-compatible)
-uv run ruff format --check . # check formatting without changing files
-```
-
-## Type checking
-
-Uses [mypy](https://mypy-lang.org/) with the Pydantic plugin. Checks `src/` only (not tests or scripts).
+## Lint & types (Python)
 
 ```bash
+uv run ruff check .
+uv run ruff check --fix .
+uv run ruff format .
+uv run ruff format --check .
 uv run mypy src/
 ```
 
-## Webapp (API + React)
+---
 
-**API tests** (FastAPI read layer, no browser):
+## Frontend (lint / production build)
 
-```bash
-uv run pytest tests/test_webapp_api.py -q --no-cov
-```
-
-**Frontend** (requires Node 18+; install deps once with `npm ci` in `frontend/`):
+Dev server: see **Run the dashboard** above.
 
 ```bash
-cd frontend && npm ci && npm run lint && npm run build
+cd frontend
+npm run lint
+npm run build    # Typecheck + production bundle
 ```
 
-From `frontend/`, run Python API tests via `npm run test:api` or `npm run test:python` (see `frontend/package.json`).
+---
 
-CI runs the same checks; `frontend/package-lock.json` is tracked for reproducible installs.
+## Pre-commit & CI
 
-## Pre-commit hooks
-
-Ruff, mypy, tests, and **frontend ESLint** (when `frontend/` files are committed) run on `git commit`. Set up once with:
-
-```bash
-uv run pre-commit install
-```
-
-To run all hooks manually against all files:
+After `uv run pre-commit install`: Ruff, Ruff format, mypy, full pytest with `--cov-fail-under=88`, and ESLint when you change files under `frontend/`.
 
 ```bash
 uv run pre-commit run --all-files
 ```
 
-## CI
-
-GitHub Actions runs Python lint, type checking, tests, and a **frontend** job (`npm ci`, `npm run lint`, `npm run build`) on every push to `main` and on pull requests. See `.github/workflows/ci.yml`.
+**CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): Python lint, format, mypy, pytest with coverage gate, and `frontend` (`npm ci`, `npm run lint`, `npm run build`) on pushes/PRs to `main`.
