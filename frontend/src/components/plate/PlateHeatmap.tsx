@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import type { WellResult, MetricKey } from '@/types';
 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as const;
@@ -93,20 +94,35 @@ export function PlateHeatmap({
 
             return (
               <Tooltip key={wellId}>
-                <TooltipTrigger asChild>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => onSelectWell(wellId)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectWell(wellId); }}
-                    className={`${cell} rounded-full border-2 transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-foreground scale-110 shadow-md'
-                        : 'border-transparent hover:border-muted-foreground/50 hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                </TooltipTrigger>
+                <TooltipTrigger
+                  render={(props) => (
+                    <div
+                      {...props}
+                      role="button"
+                      tabIndex={0}
+                      className={cn(
+                        cell,
+                        'rounded-full border-2 transition-all cursor-pointer',
+                        isSelected
+                          ? 'border-foreground scale-110 shadow-md'
+                          : 'border-transparent hover:border-muted-foreground/50 hover:scale-105',
+                        props.className,
+                      )}
+                      style={{ ...props.style, backgroundColor: color }}
+                      onClick={(e) => {
+                        props.onClick?.(e);
+                        onSelectWell(wellId);
+                      }}
+                      onKeyDown={(e) => {
+                        props.onKeyDown?.(e);
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onSelectWell(wellId);
+                        }
+                      }}
+                    />
+                  )}
+                />
                 <TooltipContent side="top" className="text-xs">
                   <p className="font-semibold">{wellId}</p>
                   {well ? (

@@ -52,7 +52,7 @@ No dedicated compare endpoint. The Compare page fetches multiple iterations via 
 src/webapp/                          # Python backend (FastAPI)
 ├── __init__.py
 ├── main.py                          # App creation, CORS, route mounting
-├── config.py                        # Settings (DATA_DIR path)
+├── config.py                        # `get_data_dir()` (default `data/iterations`, override `WEBAPP_DATA_DIR`)
 ├── routes/
 │   ├── __init__.py
 │   ├── iterations.py                # List, detail
@@ -142,9 +142,13 @@ npm run dev
 # Opens at http://localhost:5173, proxies /api to localhost:8000
 ```
 
+**Environment**
+
+- `WEBAPP_DATA_DIR` (optional): filesystem root containing `iter_*` folders. Defaults to `data/iterations` relative to the process working directory. Tests override this via FastAPI dependency injection instead of env.
+
 ## Build Order
 
 1. **Backend + Iteration View.** FastAPI routes and services, React scaffold, plate heatmap, well detail panel, OD curve chart.
 2. **Dashboard + History.** Summary cards, optimization progress chart, iteration table, sidebar navigation.
 3. **Workcell Status + Compare.** WebSocket for Monomer MCP status, comparison page.
-4. **Polish.** Loading states, error handling, empty states, API tests.
+4. **Polish.** Loading states, error boundaries, shared empty/error UI, API tests (`tests/test_webapp_api.py`), coverage for `src/webapp`.

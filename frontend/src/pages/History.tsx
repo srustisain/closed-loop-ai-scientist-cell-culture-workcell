@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIterations } from '@/api/client';
+import { ApiErrorState } from '@/components/feedback/ApiErrorState';
+import { EmptyState } from '@/components/feedback/EmptyState';
 import type { IterationSummary } from '@/types';
 
 type SortKey = keyof IterationSummary;
@@ -17,7 +19,7 @@ const COLUMNS: { key: SortKey; label: string }[] = [
 ];
 
 export function History() {
-  const { data: iterations, isLoading, error } = useIterations();
+  const { data: iterations, isLoading, error, refetch } = useIterations();
   const [sortKey, setSortKey] = useState<SortKey>('iteration_id');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -50,15 +52,19 @@ export function History() {
   }
 
   if (error) {
-    return <p className="text-destructive">Error: {(error as Error).message}</p>;
+    return (
+      <ApiErrorState
+        message={(error as Error).message}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
   if (!iterations || iterations.length === 0) {
     return (
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">History</h2>
-        <p className="text-muted-foreground">No iterations found.</p>
-      </div>
+      <EmptyState title="History" description="No iterations found. Generate mock data or run an experiment." />
     );
   }
 

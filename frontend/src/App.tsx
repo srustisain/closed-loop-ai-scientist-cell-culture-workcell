@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { ErrorBoundary } from '@/components/feedback/ErrorBoundary';
 import { AppShell } from '@/components/layout/AppShell';
 import { Dashboard } from '@/pages/Dashboard';
 import { IterationView } from '@/pages/IterationView';
@@ -21,14 +22,16 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <BrowserRouter>
-          <Routes>
-            <Route element={<AppShell />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/iterations/:iterationId" element={<IterationView />} />
-              <Route path="/history" element={<History />} />
-              <Route path="/compare" element={<Compare />} />
-            </Route>
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route element={<AppShell />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/iterations/:iterationId" element={<IterationView />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/compare" element={<Compare />} />
+              </Route>
+            </Routes>
+          </ErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

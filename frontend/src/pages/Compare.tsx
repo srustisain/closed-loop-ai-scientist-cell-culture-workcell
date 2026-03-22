@@ -6,11 +6,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PlateHeatmap } from '@/components/plate/PlateHeatmap';
 import { useIterations, useIterationsBatch } from '@/api/client';
 import { globalMetricRange } from '@/lib/metrics';
+import { ApiErrorState } from '@/components/feedback/ApiErrorState';
+import { EmptyState } from '@/components/feedback/EmptyState';
 import type { MetricKey } from '@/types';
 import { METRIC_LABELS } from '@/types';
 
 export function Compare() {
-  const { data: summaries, isLoading: listLoading, error: listError } = useIterations();
+  const { data: summaries, isLoading: listLoading, error: listError, refetch: refetchList } =
+    useIterations();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [metric, setMetric] = useState<MetricKey>('growth_rate');
   const initRef = useRef(false);
@@ -47,15 +50,22 @@ export function Compare() {
   }
 
   if (listError) {
-    return <p className="text-destructive">Error: {(listError as Error).message}</p>;
+    return (
+      <ApiErrorState
+        message={(listError as Error).message}
+        onRetry={() => {
+          void refetchList();
+        }}
+      />
+    );
   }
 
   if (!summaries?.length) {
     return (
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Compare</h2>
-        <p className="text-muted-foreground">No iterations to compare. Generate mock data first.</p>
-      </div>
+      <EmptyState
+        title="Compare"
+        description="No iterations to compare. Generate mock data or run an experiment first."
+      />
     );
   }
 
@@ -105,9 +115,12 @@ export function Compare() {
         <p className="text-sm text-muted-foreground">Select at least one iteration above.</p>
       )}
 
-      {firstError && (
-        <p className="text-destructive text-sm">Error loading data: {(firstError as Error).message}</p>
-      )}
+      {firstError ? (
+        <ApiErrorState
+          title="Error loading one or more iterations"
+          message={(firstError as Error).message}
+        />
+      ) : null}
 
       {selectedIds.length > 0 && anyLoading && (
         <div className="flex gap-4 overflow-x-auto pb-2">

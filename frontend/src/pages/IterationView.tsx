@@ -5,12 +5,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PlateHeatmap } from '@/components/plate/PlateHeatmap';
 import { WellDetailPanel } from '@/components/plate/WellDetailPanel';
 import { useIteration } from '@/api/client';
+import { ApiErrorState } from '@/components/feedback/ApiErrorState';
+import { EmptyState } from '@/components/feedback/EmptyState';
 import type { MetricKey } from '@/types';
 import { METRIC_LABELS } from '@/types';
 
 export function IterationView() {
   const { iterationId } = useParams<{ iterationId: string }>();
-  const { data: iteration, isLoading, error } = useIteration(iterationId ?? '');
+  const { data: iteration, isLoading, error, refetch } = useIteration(iterationId ?? '');
   const [selectedWell, setSelectedWell] = useState<string | null>(null);
   const [metric, setMetric] = useState<MetricKey>('growth_rate');
 
@@ -33,11 +35,23 @@ export function IterationView() {
   }
 
   if (error) {
-    return <p className="text-destructive">Error: {(error as Error).message}</p>;
+    return (
+      <ApiErrorState
+        message={(error as Error).message}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
   if (!iteration) {
-    return <p className="text-muted-foreground">No data found.</p>;
+    return (
+      <EmptyState
+        title="Iteration"
+        description="No data found for this iteration. Check the URL or ensure the parser has run."
+      />
+    );
   }
 
   return (

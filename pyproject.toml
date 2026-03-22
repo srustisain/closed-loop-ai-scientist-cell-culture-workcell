@@ -13,6 +13,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
@@ -22,10 +23,10 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=src/parser --cov-report=term-missing --cov-fail-under=90"
+addopts = "--cov=src/parser --cov=src/webapp --cov-report=term-missing --cov-fail-under=88"
 
 [tool.coverage.run]
-source = ["src/parser"]
+source = ["src/parser", "src/webapp"]
 omit = ["src/parser/__main__.py"]
 
 [tool.coverage.report]

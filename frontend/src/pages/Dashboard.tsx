@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIterations } from '@/api/client';
 import { OptimizationProgress } from '@/components/charts/OptimizationProgress';
+import { ApiErrorState } from '@/components/feedback/ApiErrorState';
+import { EmptyState } from '@/components/feedback/EmptyState';
 
 export function Dashboard() {
-  const { data: iterations, isLoading, error } = useIterations();
+  const { data: iterations, isLoading, error, refetch } = useIterations();
 
   if (isLoading) {
     return (
@@ -22,17 +24,22 @@ export function Dashboard() {
   }
 
   if (error) {
-    return <p className="text-destructive">Error: {(error as Error).message}</p>;
+    return (
+      <ApiErrorState
+        message={(error as Error).message}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
 
   if (!iterations || iterations.length === 0) {
     return (
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Dashboard</h2>
-        <p className="text-muted-foreground">
-          No iterations found. Run an experiment or generate mock data to get started.
-        </p>
-      </div>
+      <EmptyState
+        title="Dashboard"
+        description="No iterations found. Run an experiment or generate mock data to get started."
+      />
     );
   }
 
