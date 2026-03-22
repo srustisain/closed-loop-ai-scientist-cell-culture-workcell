@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PlateHeatmap } from '@/components/plate/PlateHeatmap';
 import { WellDetailPanel } from '@/components/plate/WellDetailPanel';
 import { MetricDefinitionButton } from '@/components/charts/MetricDefinitionButton';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { useIteration, useIterations } from '@/api/client';
 import { sortIterationIds } from '@/components/dashboard/DashboardIterationFilter';
 import { ApiErrorState } from '@/components/feedback/ApiErrorState';
@@ -105,31 +106,34 @@ export function IterationView() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
-        <h2 className="text-xl font-semibold">Iteration</h2>
-        {iterationOptions.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor="iteration-view-select" className="sr-only">
-              Choose iteration
-            </label>
-            <Select value={iteration.iteration_id} onValueChange={onIterationChange}>
-              <SelectTrigger id="iteration-view-select" className="w-[min(100%,22rem)] h-10 text-base">
-                <SelectValue placeholder="Select iteration" />
-              </SelectTrigger>
-              <SelectContent>
-                {iterationOptions.map((id) => (
-                  <SelectItem key={id} value={id}>
-                    {id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : (
-          <p className="text-lg font-medium text-foreground tabular-nums">{iteration.iteration_id}</p>
-        )}
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Iteration"
+        description="Inspect one run's 96-well plate. Choose a metric to color wells, click a well for details, or switch runs from the menu."
+        titleAddon={
+          iterationOptions.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <label htmlFor="iteration-view-select" className="sr-only">
+                Choose iteration
+              </label>
+              <Select value={iteration.iteration_id} onValueChange={onIterationChange}>
+                <SelectTrigger id="iteration-view-select" className="w-[min(100%,22rem)] h-10 text-base">
+                  <SelectValue placeholder="Select iteration" />
+                </SelectTrigger>
+                <SelectContent>
+                  {iterationOptions.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      {id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <p className="text-lg font-medium text-foreground tabular-nums">{iteration.iteration_id}</p>
+          )
+        }
+      />
 
       {/* Summary stats (follow selected metric) */}
       <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
@@ -170,7 +174,12 @@ export function IterationView() {
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <span className="text-sm font-medium text-foreground">Color by</span>
               <div className="flex flex-wrap items-center gap-2">
-                <Select value={metric} onValueChange={(v) => setMetric(v as MetricKey)}>
+                <Select
+                  value={metric}
+                  onValueChange={(v) => {
+                    if (v) setMetric(v as MetricKey);
+                  }}
+                >
                   <SelectTrigger className="w-[min(100%,18rem)]">
                     <SelectValue />
                   </SelectTrigger>

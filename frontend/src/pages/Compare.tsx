@@ -3,6 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { PlateHeatmap } from '@/components/plate/PlateHeatmap';
 import { MetricDefinitionButton } from '@/components/charts/MetricDefinitionButton';
 import { useIterations, useIterationsBatch } from '@/api/client';
@@ -72,16 +73,18 @@ export function Compare() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Compare iterations</h2>
+      <PageHeader
+        title="Compare iterations"
+        description="Lay plates side by side so you can compare runs on the same color scale. Choose a metric, pick which iterations to show, then scroll horizontally."
+      />
 
       <Card className="max-w-3xl">
         <CardHeader className="space-y-3 border-b border-border/60 pb-4">
           <div>
             <CardTitle className="text-base">Metric & color scale</CardTitle>
             <CardDescription>
-              One shared blue scale across all visible plates for the selected metric (same as the
-              iteration page). Darker wells are better for that metric. Toggle which iterations to
-              include below, then scroll horizontally to compare.
+              Same metric and min–max range for every plate (dark = better). Matches the iteration
+              page plate view.
             </CardDescription>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">

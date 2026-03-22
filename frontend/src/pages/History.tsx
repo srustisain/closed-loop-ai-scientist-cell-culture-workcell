@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIterations } from '@/api/client';
@@ -70,7 +71,10 @@ export function History() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">History</h2>
+      <PageHeader
+        title="History"
+        description="Browse every run with a short summary. Sort columns by clicking headers, then open an iteration to see the full plate."
+      />
 
       <div className="border rounded-lg">
         <Table>

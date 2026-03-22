@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { DashboardIterationFilter, sortIterationIds } from '@/components/dashboard/DashboardIterationFilter';
 import { OverviewMetricsSection } from '@/components/charts/OverviewMetricsSection';
 import { OptimizationMetricsSection } from '@/components/charts/OptimizationMetricsSection';
@@ -138,7 +139,10 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Dashboard</h2>
+      <PageHeader
+        title="Dashboard"
+        description="See how your experiment runs compare across iterations. Pick which runs to include, review the summary cards, then explore Overview and Detailed charts. The legend and filters here stay in sync."
+      />
 
       <DashboardIterationFilter
         iterationIds={allIds}
