@@ -101,7 +101,7 @@ export function DashboardIterationFilter({
               <label className="text-xs text-muted-foreground" htmlFor="range-from">
                 From
               </label>
-              <Select value={rangeFrom} onValueChange={(v) => v && setRangeFrom(v)}>
+              <Select value={rangeFrom} onValueChange={(v: string | null) => v && setRangeFrom(v)}>
                 <SelectTrigger id="range-from" className="h-8 w-[min(100%,11rem)]">
                   <SelectValue placeholder="First" />
                 </SelectTrigger>
@@ -118,7 +118,7 @@ export function DashboardIterationFilter({
               <label className="text-xs text-muted-foreground" htmlFor="range-to">
                 To
               </label>
-              <Select value={rangeTo} onValueChange={(v) => v && setRangeTo(v)}>
+              <Select value={rangeTo} onValueChange={(v: string | null) => v && setRangeTo(v)}>
                 <SelectTrigger id="range-to" className="h-8 w-[min(100%,11rem)]">
                   <SelectValue placeholder="Last" />
                 </SelectTrigger>

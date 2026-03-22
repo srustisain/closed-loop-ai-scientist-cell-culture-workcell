@@ -31,7 +31,7 @@ export function OverviewMetricsSection({ iterations, onIterationLegendClick }: P
   const setX = (v: MetricKey) => {
     setXMetric(v);
     if (v === yMetric) {
-      const alt = DASHBOARD_METRICS.find((m) => m !== v);
+      const alt = DASHBOARD_METRICS.find((m: MetricKey) => m !== v);
       if (alt) setYMetric(alt);
     }
   };
@@ -39,7 +39,7 @@ export function OverviewMetricsSection({ iterations, onIterationLegendClick }: P
   const setY = (v: MetricKey) => {
     setYMetric(v);
     if (v === xMetric) {
-      const alt = DASHBOARD_METRICS.find((m) => m !== v);
+      const alt = DASHBOARD_METRICS.find((m: MetricKey) => m !== v);
       if (alt) setXMetric(alt);
     }
   };
@@ -66,7 +66,7 @@ export function OverviewMetricsSection({ iterations, onIterationLegendClick }: P
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {DASHBOARD_METRICS.map((m) => (
+                {DASHBOARD_METRICS.map((m: MetricKey) => (
                   <SelectItem key={m} value={m} disabled={m === yMetric}>
                     {METRIC_LABELS[m]}
                   </SelectItem>
@@ -83,7 +83,7 @@ export function OverviewMetricsSection({ iterations, onIterationLegendClick }: P
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {DASHBOARD_METRICS.map((m) => (
+                {DASHBOARD_METRICS.map((m: MetricKey) => (
                   <SelectItem key={m} value={m} disabled={m === xMetric}>
                     {METRIC_LABELS[m]}
                   </SelectItem>

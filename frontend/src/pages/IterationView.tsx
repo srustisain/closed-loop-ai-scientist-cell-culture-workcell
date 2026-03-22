@@ -93,12 +93,12 @@ export function IterationView() {
         {iterationOptions.length > 0 ? (
           <div className="flex max-w-md flex-col gap-2">
             <span className="text-sm font-medium text-foreground">Open another iteration</span>
-            <Select onValueChange={onIterationChange}>
+            <Select onValueChange={(id: string | null) => onIterationChange(id)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select iteration" />
               </SelectTrigger>
               <SelectContent>
-                {iterationOptions.map((id) => (
+                {iterationOptions.map((id: string) => (
                   <SelectItem key={id} value={id}>
                     {id}
                   </SelectItem>
@@ -122,12 +122,15 @@ export function IterationView() {
               <label htmlFor="iteration-view-select" className="sr-only">
                 Choose iteration
               </label>
-              <Select value={iteration.iteration_id} onValueChange={onIterationChange}>
+              <Select
+                value={iteration.iteration_id}
+                onValueChange={(id: string | null) => onIterationChange(id)}
+              >
                 <SelectTrigger id="iteration-view-select" className="w-[min(100%,22rem)] h-10 text-base">
                   <SelectValue placeholder="Select iteration" />
                 </SelectTrigger>
                 <SelectContent>
-                  {iterationOptions.map((id) => (
+                  {iterationOptions.map((id: string) => (
                     <SelectItem key={id} value={id}>
                       {id}
                     </SelectItem>

@@ -8,6 +8,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Matches tsconfig `paths` so `@lib/...` and `@/lib/...` both resolve in dev/build.
+      '@lib': path.resolve(__dirname, './src/lib'),
     },
   },
   server: {

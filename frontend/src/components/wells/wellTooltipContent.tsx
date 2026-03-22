@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { invertedTip } from '@/components/wells/wellTooltipTokens';
-import { designParamEntries } from '@/lib/wellDesign';
+import { designParamEntries, type DesignParamEntry } from '@/lib/wellDesign';
 import { cn } from '@/lib/utils';
 
 export function WellTooltipSection({
@@ -32,7 +32,7 @@ export function WellDesignParamList({ params }: { params: Record<string, number>
   }
   return (
     <ul className="m-0 list-none space-y-2 p-0">
-      {entries.map((e) => (
+      {entries.map((e: DesignParamEntry) => (
         <li key={e.key} className="flex flex-col gap-0.5">
           <span className="text-[11px] font-medium leading-tight text-background">{e.label}</span>
           <span className="font-mono text-sm font-semibold tabular-nums text-background/95">{e.display}</span>

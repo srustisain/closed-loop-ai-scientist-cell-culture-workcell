@@ -93,7 +93,7 @@ export function Compare() {
             <div className="flex flex-wrap items-center gap-2">
               <Select
                 value={metric}
-                onValueChange={(v) => {
+                onValueChange={(v: string | null) => {
                   if (v) setMetric(v as MetricKey);
                 }}
               >

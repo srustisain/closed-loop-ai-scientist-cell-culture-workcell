@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IterationNavChips } from './IterationNavChips';
 import { MetricViolinDistribution } from './MetricViolinDistribution';
 import { DASHBOARD_METRICS } from '@/lib/metricDefinitions';
-import type { IterationMetrics } from '@/types';
+import type { IterationMetrics, MetricKey } from '@/types';
 
 type Props = {
   iterations: IterationMetrics[];
@@ -24,7 +24,7 @@ export function OptimizationMetricsSection({ iterations, onIterationLegendClick 
         </p>
       </CardHeader>
       <CardContent className="space-y-10">
-        {DASHBOARD_METRICS.map((metric) => (
+        {DASHBOARD_METRICS.map((metric: MetricKey) => (
           <MetricViolinDistribution
             key={metric}
             metric={metric}
