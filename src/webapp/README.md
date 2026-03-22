@@ -1,0 +1,150 @@
+# Webapp
+
+Human-facing dashboard for the closed-loop cell culture optimization system. Shows iteration results, OD growth curves, and workcell status.
+
+## Tech Stack
+
+| Layer | Choice | Why |
+|-------|--------|-----|
+| API | FastAPI + Uvicorn | Reuses parser's Pydantic models directly as response schemas. Auto-docs at `/docs`. WebSocket support for live status. |
+| Frontend | React + TypeScript + Vite | Needed for the interactive 96-well heatmap and chart interactions. Vite gives fast dev reloads. |
+| UI | Tailwind CSS + shadcn/ui | Consistent, polished components (tables, cards, tabs, dialogs) without writing custom CSS. |
+| Charts | Plotly.js via react-plotly.js | Handles heatmaps, time-series, and scatter plots. Good fit for scientific data. |
+| Routing | React Router | Page navigation (Dashboard, Iteration, History, Compare). |
+| Data fetching | TanStack Query | Manages caching, loading states, and refetch logic so we don't hand-roll `useEffect` boilerplate. |
+
+## Architecture
+
+```
+Browser (React)  --HTTP/JSON-->  FastAPI API  --reads-->  data/iterations/iter_NNN/
+                 <--WebSocket--              <--queries-- Monomer MCP (workcell status)
+```
+
+The API is a thin read layer over the filesystem. The parser writes `growth_metrics.json` and per-well CSVs to disk; the API reads those files and serves them as JSON. No database. The `data/iterations/` directory structure is the data store.
+
+The parser's Pydantic models (`WellResult`, `IterationMetrics` in `src/parser/models.py`) are imported and reused as FastAPI response schemas. No conversion code needed.
+
+## API Endpoints
+
+| Method | Endpoint | Returns |
+|--------|----------|---------|
+| GET | `/api/iterations` | List of iteration summaries (id, well count, mean/best growth rate) |
+| GET | `/api/iterations/{id}` | Full `IterationMetrics` straight from `growth_metrics.json` |
+| GET | `/api/iterations/{id}/wells/{well}/timeseries` | OD time-series: `[{elapsed_hours, od600}]` |
+| GET | `/api/iterations/{id}/design-mapping` | Well-to-design mapping JSON |
+| WS | `/api/ws/workcell-status` | Live workcell status from Monomer MCP |
+
+No dedicated compare endpoint. The Compare page fetches multiple iterations via parallel `GET /api/iterations/{id}` calls and composes them on the frontend.
+
+## Frontend Pages
+
+**Dashboard.** Summary cards (total iterations, best growth rate found, best parameters), live workcell status panel (current phase, elapsed time, progress), optimization progress chart (best growth rate per iteration over time), quick link to the latest iteration.
+
+**Iteration View.** The main page. A 96-well plate heatmap colored by a selectable metric (growth rate, max OD, R-squared, doubling time). Clicking a well opens a detail panel with the OD-vs-time chart (raw points plus fitted exponential), growth metrics, and design parameters for that well.
+
+**History.** Sortable table of all past iterations.
+
+**Compare.** Side-by-side heatmaps and parameter-space scatter plots across selected iterations. Lower priority.
+
+## Directory Structure
+
+```
+src/webapp/                          # Python backend (FastAPI)
+├── __init__.py
+├── main.py                          # App creation, CORS, route mounting
+├── config.py                        # Settings (DATA_DIR path)
+├── routes/
+│   ├── __init__.py
+│   ├── iterations.py                # List, detail
+│   └── wells.py                     # Well timeseries
+└── services/
+    ├── __init__.py
+    ├── iteration_service.py         # Reads iteration files, returns Pydantic models
+    └── od_data_service.py           # Parses well CSVs into timeseries arrays
+
+frontend/                            # React app (lives at project root)
+├── package.json
+├── vite.config.ts                   # Proxies /api to localhost:8000
+├── tailwind.config.ts
+├── components.json                  # shadcn/ui config
+└── src/
+    ├── App.tsx                      # Router setup
+    ├── api/client.ts                # Typed fetch wrapper + TanStack Query hooks
+    ├── types/api.ts                 # Auto-generated from OpenAPI schema (do not edit)
+    ├── pages/
+    │   ├── Dashboard.tsx
+    │   ├── IterationView.tsx
+    │   ├── History.tsx
+    │   └── Compare.tsx
+    └── components/
+        ├── plate/
+        │   ├── PlateHeatmap.tsx      # Interactive 96-well plate
+        │   └── WellDetailPanel.tsx   # Side panel: metrics + OD curve
+        ├── charts/
+        │   ├── OdCurveChart.tsx
+        │   └── OptimizationProgress.tsx
+        ├── layout/
+        │   ├── AppShell.tsx          # Sidebar + header + content area
+        │   └── Sidebar.tsx
+        └── status/
+            └── WorkcellStatus.tsx    # Persistent status indicator (header bar)
+```
+
+## Data Integration
+
+The webapp consumes the parser's output. The shared types:
+
+```python
+# src/parser/models.py (imported by the API, not duplicated)
+class WellResult(BaseModel):
+    well: str                         # "A3"
+    parent_well: str                  # "A1"
+    params: dict[str, float]          # {"cell_volume_uL": 40, ...}
+    growth_rate: float                # 1/h
+    doubling_time_hours: float | None
+    r_squared: float                  # fit quality, 0 to 1
+    max_od: float                     # peak OD600
+    n_datapoints: int
+    time_range_hours: float
+
+class IterationMetrics(BaseModel):
+    iteration_id: str                 # "iter_001"
+    results: list[WellResult]         # one per well (96 total)
+```
+
+Frontend TypeScript types are auto-generated from FastAPI's OpenAPI schema, not hand-maintained. With the API running:
+
+```bash
+cd frontend
+npx openapi-typescript http://localhost:8000/openapi.json -o src/types/api.ts
+```
+
+This is also available as `npm run generate-types`. Re-run it whenever the Pydantic models change.
+
+## Running Locally
+
+Prerequisites: Python 3.10+, Node.js 18+, [uv](https://docs.astral.sh/uv/).
+
+```bash
+# Install Python dependencies (from project root)
+uv sync
+
+# Generate mock data if you don't have real experiment data
+uv run python scripts/generate_mock_data.py
+
+# Terminal 1: start the API (auto-reloads on changes)
+uv run uvicorn src.webapp.main:app --reload --port 8000
+
+# Terminal 2: start the frontend dev server
+cd frontend
+npm install
+npm run dev
+# Opens at http://localhost:5173, proxies /api to localhost:8000
+```
+
+## Build Order
+
+1. **Backend + Iteration View.** FastAPI routes and services, React scaffold, plate heatmap, well detail panel, OD curve chart.
+2. **Dashboard + History.** Summary cards, optimization progress chart, iteration table, sidebar navigation.
+3. **Workcell Status + Compare.** WebSocket for Monomer MCP status, comparison page.
+4. **Polish.** Loading states, error handling, empty states, API tests.
