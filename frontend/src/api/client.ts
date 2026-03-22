@@ -19,11 +19,11 @@ export function useIterations() {
   });
 }
 
-export function useIteration(iterationId: string) {
+export function useIteration(iterationId: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['iteration', iterationId],
     queryFn: () => fetchJson<IterationMetrics>(`${BASE}/iterations/${iterationId}`),
-    enabled: !!iterationId,
+    enabled: (options?.enabled ?? true) && !!iterationId,
   });
 }
 

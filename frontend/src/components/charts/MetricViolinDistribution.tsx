@@ -5,6 +5,7 @@ import { iterationIdFromLegendClick } from '@/lib/chartIterationLegend';
 import { jitter01 } from '@/lib/hashJitter';
 import { colorForIterationId, hexToRgba } from '@/lib/iterationColors';
 import { bestWellForMetric, getMetricNumericValue } from '@/lib/metrics';
+import { formatDesignParamsPlotlyHtml } from '@/lib/wellDesign';
 import { METRIC_LABELS } from '@/types';
 import type { IterationMetrics, MetricKey } from '@/types';
 
@@ -47,6 +48,7 @@ export function MetricViolinDistribution({ metric, iterations, onIterationLegend
       const xsV: number[] = [];
       const ysV: number[] = [];
       const wells: string[] = [];
+      const designHtml: string[] = [];
 
       for (const r of it.results) {
         const v = getMetricNumericValue(r, metric);
@@ -57,6 +59,7 @@ export function MetricViolinDistribution({ metric, iterations, onIterationLegend
         xsV.push(ix);
         ysV.push(v);
         wells.push(r.well);
+        designHtml.push(formatDesignParamsPlotlyHtml(r.params));
         allY.push(v);
       }
 
@@ -86,6 +89,7 @@ export function MetricViolinDistribution({ metric, iterations, onIterationLegend
         x: xJittered,
         y: ysV,
         text: wells,
+        customdata: designHtml,
         mode: 'markers' as const,
         legendgroup: id,
         marker: {
@@ -95,7 +99,7 @@ export function MetricViolinDistribution({ metric, iterations, onIterationLegend
           line: { width: 0 },
         },
         showlegend: false,
-        hovertemplate: `<b>${id}</b><br>%{text}<br>%{y:.4f}<extra></extra>`,
+        hovertemplate: `<b>${id}</b><br>%{text}<br>%{y:.4f}<br>%{customdata}<extra></extra>`,
       });
     }
 
@@ -103,14 +107,17 @@ export function MetricViolinDistribution({ metric, iterations, onIterationLegend
     const bestY: number[] = [];
     const bestText: string[] = [];
     const bestColors: string[] = [];
+    const bestDesignHtml: string[] = [];
 
     for (const it of iterations) {
       const best = bestWellForMetric(it.results, metric);
       if (!best) continue;
       const id = it.iteration_id;
+      const row = it.results.find((r) => r.well === best.well);
       bestX.push(catIndex.get(id) ?? 0);
       bestY.push(best.value);
       bestText.push(best.well);
+      bestDesignHtml.push(formatDesignParamsPlotlyHtml(row?.params ?? {}));
       bestColors.push(colorForIterationId(id, categoryOrder));
       allY.push(best.value);
     }
@@ -123,6 +130,7 @@ export function MetricViolinDistribution({ metric, iterations, onIterationLegend
         x: bestX,
         y: bestY,
         text: bestText,
+        customdata: bestDesignHtml,
         textposition: 'top center' as const,
         textfont: { size: 11, color: '#0f172a' },
         marker: {
@@ -133,7 +141,7 @@ export function MetricViolinDistribution({ metric, iterations, onIterationLegend
           opacity: 1,
         },
         cliponaxis: false,
-        hovertemplate: '<b>Best %{text}</b><br>%{y:.4f}<extra></extra>',
+        hovertemplate: '<b>Best %{text}</b><br>%{y:.4f}<br>%{customdata}<extra></extra>',
         showlegend: true,
       });
     }

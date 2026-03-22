@@ -4,6 +4,7 @@ import { MetricPairDefinitionButton } from './MetricPairDefinitionButton';
 import { iterationIdFromLegendClick } from '@/lib/chartIterationLegend';
 import { bestWellForMetric, getMetricNumericValue } from '@/lib/metrics';
 import { colorForIterationId } from '@/lib/iterationColors';
+import { formatDesignParamsPlotlyHtml } from '@/lib/wellDesign';
 import { METRIC_LABELS } from '@/types';
 import type { IterationMetrics, MetricKey } from '@/types';
 
@@ -41,6 +42,7 @@ export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLe
       const xList: number[] = [];
       const yList: number[] = [];
       const labels: string[] = [];
+      const designHtml: string[] = [];
 
       for (const r of it.results) {
         const xv = getMetricNumericValue(r, xMetric);
@@ -49,6 +51,7 @@ export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLe
         xList.push(xv);
         yList.push(yv);
         labels.push(r.well);
+        designHtml.push(formatDesignParamsPlotlyHtml(r.params));
         allX.push(xv);
         allY.push(yv);
       }
@@ -63,6 +66,7 @@ export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLe
         x: xList,
         y: yList,
         text: labels,
+        customdata: designHtml,
         legendgroup: id,
         marker: {
           color,
@@ -70,7 +74,7 @@ export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLe
           opacity: 0.72,
           line: { width: 0 },
         },
-        hovertemplate: `<b>${id}</b><br>%{text}<br>${METRIC_LABELS[xMetric]}: %{x:.4f}<br>${METRIC_LABELS[yMetric]}: %{y:.4f}<extra></extra>`,
+        hovertemplate: `<b>${id}</b><br>%{text}<br>${METRIC_LABELS[xMetric]}: %{x:.4f}<br>${METRIC_LABELS[yMetric]}: %{y:.4f}<br>%{customdata}<extra></extra>`,
       });
     }
 
@@ -78,6 +82,7 @@ export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLe
     const bestY: number[] = [];
     const bestText: string[] = [];
     const bestColors: string[] = [];
+    const bestDesignHtml: string[] = [];
 
     for (const it of iterations) {
       const best = bestWellForMetric(it.results, yMetric);
@@ -90,6 +95,7 @@ export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLe
       bestX.push(xv);
       bestY.push(yv);
       bestText.push(best.well);
+      bestDesignHtml.push(formatDesignParamsPlotlyHtml(row.params));
       bestColors.push(colorForIterationId(it.iteration_id, categoryOrder));
       allX.push(xv);
       allY.push(yv);
@@ -103,6 +109,7 @@ export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLe
         x: bestX,
         y: bestY,
         text: bestText,
+        customdata: bestDesignHtml,
         textposition: 'top center' as const,
         textfont: { size: 10, color: '#0f172a' },
         legendgroup: 'best',
@@ -116,7 +123,7 @@ export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLe
         cliponaxis: false,
         hovertemplate:
           '<b>Best %{text}</b><br>' +
-          `${METRIC_LABELS[xMetric]}: %{x:.4f}<br>${METRIC_LABELS[yMetric]}: %{y:.4f}<extra></extra>`,
+          `${METRIC_LABELS[xMetric]}: %{x:.4f}<br>${METRIC_LABELS[yMetric]}: %{y:.4f}<br>%{customdata}<extra></extra>`,
       });
     }
 

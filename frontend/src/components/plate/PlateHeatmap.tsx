@@ -2,7 +2,14 @@ import { useMemo } from 'react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { bestWellForMetric, getMetricNumericValue, metricGoodness } from '@/lib/metrics';
+import { WellIdWithDesign } from '@/components/wells/WellIdWithDesign';
+import {
+  invertedTip,
+  WellDesignParamList,
+  WellTooltipSection,
+} from '@/components/wells/wellTooltipContent';
 import type { WellResult, MetricKey } from '@/types';
+import { METRIC_LABELS } from '@/types';
 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as const;
 const COLS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -148,18 +155,35 @@ export function PlateHeatmap({
                     />
                   )}
                 />
-                <TooltipContent side="top" className="text-xs max-w-[14rem]">
-                  <p className="font-semibold">
-                    {wellId}
-                    {isBest ? (
-                      <span className="ml-1 text-amber-600 dark:text-amber-400">(best on plate)</span>
+                <TooltipContent side="top" className="px-3.5 py-3">
+                  <div className={invertedTip.wrap}>
+                    <WellTooltipSection kicker="Plate position">
+                      <p className={invertedTip.wellTitle}>{wellId}</p>
+                      {isBest ? (
+                        <p className={cn(invertedTip.note, 'mt-1.5')}>
+                          Best well for this metric on this plate.
+                        </p>
+                      ) : null}
+                    </WellTooltipSection>
+                    <div className={invertedTip.divider} aria-hidden />
+                    <WellTooltipSection kicker={METRIC_LABELS[metric]}>
+                      <p className={invertedTip.metricValue}>
+                        {well
+                          ? value !== null
+                            ? value.toFixed(4)
+                            : 'No value for this metric'
+                          : 'No measurement data for this well'}
+                      </p>
+                    </WellTooltipSection>
+                    {well ? (
+                      <>
+                        <div className={invertedTip.divider} aria-hidden />
+                        <WellTooltipSection kicker="Experimental design">
+                          <WellDesignParamList params={well.params} />
+                        </WellTooltipSection>
+                      </>
                     ) : null}
-                  </p>
-                  {well ? (
-                    <p>{value !== null ? value.toFixed(4) : 'N/A'}</p>
-                  ) : (
-                    <p className="text-muted-foreground">No data</p>
-                  )}
+                  </div>
                 </TooltipContent>
               </Tooltip>
             );
@@ -193,13 +217,24 @@ export function PlateHeatmap({
         </div>
         {bestOnPlate && !compact ? (
           <p className="text-sm text-foreground">
-            <span className="font-medium text-amber-700 dark:text-amber-400">Best on plate:</span>{' '}
-            well {bestOnPlate.well} ({bestOnPlate.value.toFixed(4)})
+            <span className="font-medium text-amber-700 dark:text-amber-400">Best on plate:</span> well{' '}
+            <WellIdWithDesign
+              wellId={bestOnPlate.well}
+              params={results.find((r) => r.well === bestOnPlate.well)?.params}
+            />{' '}
+            ({bestOnPlate.value.toFixed(4)})
           </p>
         ) : null}
         {bestOnPlate && compact ? (
-          <p className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>
-            Best: {bestOnPlate.well} ({bestOnPlate.value.toFixed(4)})
+          <p className="text-[10px] text-muted-foreground">
+            Best:{' '}
+            <WellIdWithDesign
+              wellId={bestOnPlate.well}
+              params={results.find((r) => r.well === bestOnPlate.well)?.params}
+              showAffordance={false}
+              className="text-foreground text-[10px]"
+            />{' '}
+            ({bestOnPlate.value.toFixed(4)})
           </p>
         ) : null}
       </div>

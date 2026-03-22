@@ -1,3 +1,4 @@
+import { WellDesignInline } from '@/components/wells/WellIdWithDesign';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { OdCurveChart } from '@/components/charts/OdCurveChart';
@@ -15,8 +16,11 @@ export function WellDetailPanel({ well, iterationId, onClose }: Props) {
 
   return (
     <div className="w-96 shrink-0 space-y-4 overflow-y-auto">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Well {well.well}</h3>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="text-lg font-semibold">Well {well.well}</h3>
+          <WellDesignInline params={well.params} className="mt-1 block text-sm" />
+        </div>
         <button
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground text-sm px-2 py-1 rounded hover:bg-muted transition-colors"

@@ -7,6 +7,7 @@ import { PlateHeatmap } from '@/components/plate/PlateHeatmap';
 import { WellDetailPanel } from '@/components/plate/WellDetailPanel';
 import { MetricDefinitionButton } from '@/components/charts/MetricDefinitionButton';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { WellDesignInline, WellIdWithDesign } from '@/components/wells/WellIdWithDesign';
 import { useIteration, useIterations } from '@/api/client';
 import { sortIterationIds } from '@/components/dashboard/DashboardIterationFilter';
 import { ApiErrorState } from '@/components/feedback/ApiErrorState';
@@ -55,6 +56,11 @@ export function IterationView() {
     if (!iteration) return null;
     return meanMetricValue(iteration.results, metric);
   }, [iteration, metric]);
+
+  const bestWellRow = useMemo(() => {
+    if (!bestForMetric || !iteration) return null;
+    return iteration.results.find((r) => r.well === bestForMetric.well) ?? null;
+  }, [bestForMetric, iteration]);
 
   if (isLoading) {
     return (
@@ -142,10 +148,19 @@ export function IterationView() {
         </span>
         <span className="text-muted-foreground">
           Best ({METRIC_LABELS[metric]}):{' '}
-          <span className="text-foreground font-medium">
+          <span className="text-foreground font-medium inline-flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
             {bestForMetric ? (
               <>
-                well {bestForMetric.well} ({bestForMetric.value.toFixed(4)})
+                <span className="inline-flex flex-wrap items-baseline gap-x-1">
+                  well{' '}
+                  <WellIdWithDesign
+                    wellId={bestForMetric.well}
+                    params={bestWellRow?.params}
+                    lazyLoadIterationId={iteration.iteration_id}
+                  />
+                  <span className="tabular-nums">({bestForMetric.value.toFixed(4)})</span>
+                </span>
+                {bestWellRow ? <WellDesignInline params={bestWellRow.params} /> : null}
               </>
             ) : (
               '—'

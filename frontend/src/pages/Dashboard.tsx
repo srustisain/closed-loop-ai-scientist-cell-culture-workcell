@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { DashboardIterationFilter, sortIterationIds } from '@/components/dashboard/DashboardIterationFilter';
+import { WellIdWithDesign } from '@/components/wells/WellIdWithDesign';
 import { OverviewMetricsSection } from '@/components/charts/OverviewMetricsSection';
 import { OptimizationMetricsSection } from '@/components/charts/OptimizationMetricsSection';
 import { useIterations, useIterationsBatch } from '@/api/client';
@@ -73,6 +74,24 @@ export function Dashboard() {
     () => sortIterationIds(filteredSummaries.map((s) => s.iteration_id)),
     [filteredSummaries],
   );
+
+  const globalBestParams = useMemo(() => {
+    if (filteredSummaries.length === 0) return null;
+    const gb = filteredSummaries.reduce((best, it) =>
+      it.best_growth_rate > best.best_growth_rate ? it : best,
+    );
+    const it = filteredMetrics.find((m) => m.iteration_id === gb.iteration_id);
+    return it?.results.find((r) => r.well === gb.best_well)?.params ?? null;
+  }, [filteredSummaries, filteredMetrics]);
+
+  const latestBestParams = useMemo(() => {
+    if (filteredSummaries.length === 0 || sortedFilteredIds.length === 0) return null;
+    const latestId = sortedFilteredIds[sortedFilteredIds.length - 1];
+    const latest = filteredSummaries.find((s) => s.iteration_id === latestId);
+    if (!latest) return null;
+    const it = filteredMetrics.find((m) => m.iteration_id === latest.iteration_id);
+    return it?.results.find((r) => r.well === latest.best_well)?.params ?? null;
+  }, [filteredSummaries, sortedFilteredIds, filteredMetrics]);
 
   const detailLoading = summaries != null && summaries.length > 0 && batch.some((q) => q.isLoading);
   const detailError = batch.find((q) => q.error)?.error;
@@ -173,8 +192,16 @@ export function Dashboard() {
                   {globalBest.best_growth_rate.toFixed(4)}{' '}
                   <span className="text-base font-normal text-muted-foreground">/h</span>
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Well {globalBest.best_well} in {globalBest.iteration_id}
+                <p className="text-sm text-muted-foreground mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span>
+                    Well{' '}
+                    <WellIdWithDesign
+                      wellId={globalBest.best_well}
+                      params={globalBestParams ?? undefined}
+                      lazyLoadIterationId={globalBest.iteration_id}
+                    />{' '}
+                    in {globalBest.iteration_id}
+                  </span>
                 </p>
               </>
             ) : (
@@ -197,7 +224,17 @@ export function Dashboard() {
                   {latest.iteration_id}
                 </Link>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {latest.well_count} wells, best: {latest.best_growth_rate.toFixed(4)} /h
+                  <span className="inline-flex flex-wrap items-baseline gap-x-1">
+                    {latest.well_count} wells, best: {latest.best_growth_rate.toFixed(4)} /h (
+                    <WellIdWithDesign
+                      wellId={latest.best_well}
+                      params={latestBestParams ?? undefined}
+                      lazyLoadIterationId={latest.iteration_id}
+                      showAffordance={false}
+                      className="text-foreground"
+                    />
+                    )
+                  </span>
                 </p>
               </>
             ) : (

@@ -8,6 +8,7 @@ import { PlateHeatmap } from '@/components/plate/PlateHeatmap';
 import { MetricDefinitionButton } from '@/components/charts/MetricDefinitionButton';
 import { useIterations, useIterationsBatch } from '@/api/client';
 import { bestWellForMetric, globalMetricRange } from '@/lib/metrics';
+import { WellIdWithDesign } from '@/components/wells/WellIdWithDesign';
 import { ApiErrorState } from '@/components/feedback/ApiErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import type { MetricKey } from '@/types';
@@ -165,16 +166,27 @@ export function Compare() {
             const data = q.data;
             if (!data) return null;
             const best = bestWellForMetric(data.results, metric);
+            const bestRow = best ? data.results.find((r) => r.well === best.well) : null;
             return (
               <Card key={data.iteration_id} className="min-w-[280px] shrink-0">
                 <CardHeader className="py-3">
                   <CardTitle className="text-sm">{data.iteration_id}</CardTitle>
-                  <p className="text-xs text-muted-foreground font-normal">
-                    {data.results.length} wells
+                  <p className="text-xs text-muted-foreground font-normal flex flex-wrap items-baseline gap-x-1 gap-y-1">
+                    <span>{data.results.length} wells</span>
                     {best ? (
                       <>
-                        {' '}
-                        · best {best.well} ({best.value.toFixed(4)})
+                        <span aria-hidden>·</span>
+                        <span>
+                          best{' '}
+                          <WellIdWithDesign
+                            wellId={best.well}
+                            params={bestRow?.params}
+                            lazyLoadIterationId={data.iteration_id}
+                            showAffordance={false}
+                            className="text-foreground text-xs"
+                          />{' '}
+                          <span className="tabular-nums">({best.value.toFixed(4)})</span>
+                        </span>
                       </>
                     ) : null}
                   </p>

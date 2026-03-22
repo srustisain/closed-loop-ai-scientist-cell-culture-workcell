@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { WellIdWithDesign } from '@/components/wells/WellIdWithDesign';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIterations } from '@/api/client';
@@ -110,7 +111,9 @@ export function History() {
                 <TableCell>{it.well_count}</TableCell>
                 <TableCell className="font-mono">{it.mean_growth_rate.toFixed(4)}</TableCell>
                 <TableCell className="font-mono">{it.best_growth_rate.toFixed(4)}</TableCell>
-                <TableCell className="font-mono">{it.best_well}</TableCell>
+                <TableCell>
+                  <WellIdWithDesign wellId={it.best_well} lazyLoadIterationId={it.iteration_id} />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
