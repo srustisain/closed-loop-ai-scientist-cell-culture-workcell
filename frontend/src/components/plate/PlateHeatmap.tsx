@@ -1,10 +1,30 @@
 import { useMemo } from 'react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { bestWellForMetric, getMetricNumericValue, metricGoodness } from '@/lib/metrics';
 import type { WellResult, MetricKey } from '@/types';
 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as const;
 const COLS = Array.from({ length: 12 }, (_, i) => i + 1);
+
+/** Single-hue sequential scale: light (low goodness) → saturated dark (high goodness). */
+function sequentialFill(goodness: number): string {
+  const t = Math.min(1, Math.max(0, goodness));
+  const h = 221;
+  const s = 18 + t * 62;
+  const l = 94 - t * 54;
+  return `hsl(${h} ${s}% ${l}%)`;
+}
+
+function gradientStops(): string {
+  const steps = 12;
+  const parts: string[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    parts.push(`${sequentialFill(t)} ${(t * 100).toFixed(1)}%`);
+  }
+  return `linear-gradient(to right, ${parts.join(', ')})`;
+}
 
 interface Props {
   results: WellResult[];
@@ -15,19 +35,8 @@ interface Props {
   colorRange?: { min: number; max: number };
   /** Smaller wells for side-by-side compare view. */
   compact?: boolean;
-}
-
-function getMetricValue(well: WellResult, metric: MetricKey): number | null {
-  const v = well[metric];
-  return typeof v === 'number' ? v : null;
-}
-
-function interpolateColor(t: number): string {
-  // Blue (low) -> Green (mid) -> Yellow (high)
-  const r = t < 0.5 ? Math.round(30 + t * 2 * 80) : Math.round(110 + (t - 0.5) * 2 * 145);
-  const g = t < 0.5 ? Math.round(100 + t * 2 * 120) : Math.round(220 - (t - 0.5) * 2 * 30);
-  const b = t < 0.5 ? Math.round(200 - t * 2 * 150) : Math.round(50 - (t - 0.5) * 2 * 40);
-  return `rgb(${r}, ${g}, ${b})`;
+  /** Show ring + callout for the best well on the plate (for this metric). Default true. */
+  showBestHighlight?: boolean;
 }
 
 export function PlateHeatmap({
@@ -37,6 +46,7 @@ export function PlateHeatmap({
   onSelectWell,
   colorRange: colorRangeProp,
   compact = false,
+  showBestHighlight = true,
 }: Props) {
   const wellMap = useMemo(() => {
     const map = new Map<string, WellResult>();
@@ -45,22 +55,29 @@ export function PlateHeatmap({
   }, [results]);
 
   const localRange = useMemo(() => {
-    const values = results.map((r) => getMetricValue(r, metric)).filter((v): v is number => v !== null);
+    const values = results
+      .map((r) => getMetricNumericValue(r, metric))
+      .filter((v): v is number => v !== null);
     if (values.length === 0) return { min: 0, max: 1 };
     return { min: Math.min(...values), max: Math.max(...values) };
   }, [results, metric]);
 
   const { min, max } = colorRangeProp ?? localRange;
 
+  const bestOnPlate = useMemo(
+    () => (showBestHighlight ? bestWellForMetric(results, metric) : null),
+    [results, metric, showBestHighlight],
+  );
+
   const cell = compact ? 'w-6 h-6 mx-0.5' : 'w-9 h-9 mx-0.5';
   const colW = compact ? 'w-6' : 'w-10';
   const rowLabel = compact ? 'w-6 text-[10px]' : 'w-8';
   const ml = compact ? 'ml-6' : 'ml-8';
 
-  const normalize = (v: number | null): number => {
-    if (v === null || max === min) return 0.5;
-    return (v - min) / (max - min);
-  };
+  const legendLowHigh =
+    metric === 'doubling_time_hours'
+      ? { low: 'Slower growth', high: 'Faster growth' }
+      : { low: 'Lower', high: 'Higher' };
 
   return (
     <div className="inline-block">
@@ -87,10 +104,12 @@ export function PlateHeatmap({
           {COLS.map((col) => {
             const wellId = `${row}${col}`;
             const well = wellMap.get(wellId);
-            const value = well ? getMetricValue(well, metric) : null;
-            const t = normalize(value);
-            const color = value !== null ? interpolateColor(t) : '#e5e7eb';
+            const value = well ? getMetricNumericValue(well, metric) : null;
+            const goodness = value !== null ? metricGoodness(value, min, max, metric) : null;
+            const color =
+              value !== null && goodness !== null ? sequentialFill(goodness) : 'hsl(220 10% 92%)';
             const isSelected = wellId === selectedWell;
+            const isBest = Boolean(bestOnPlate && wellId === bestOnPlate.well && value !== null);
 
             return (
               <Tooltip key={wellId}>
@@ -103,12 +122,18 @@ export function PlateHeatmap({
                       className={cn(
                         cell,
                         'rounded-full border-2 transition-all cursor-pointer',
+                        isBest && !isSelected && 'ring-2 ring-amber-500 ring-offset-2 ring-offset-background',
                         isSelected
-                          ? 'border-foreground scale-110 shadow-md'
+                          ? 'border-foreground scale-110 shadow-md z-[1]'
                           : 'border-transparent hover:border-muted-foreground/50 hover:scale-105',
                         props.className,
                       )}
                       style={{ ...props.style, backgroundColor: color }}
+                      aria-label={
+                        isBest
+                          ? `${wellId}, best on plate for this metric${value != null ? `, ${value}` : ''}`
+                          : wellId
+                      }
                       onClick={(e) => {
                         props.onClick?.(e);
                         onSelectWell(wellId);
@@ -123,8 +148,13 @@ export function PlateHeatmap({
                     />
                   )}
                 />
-                <TooltipContent side="top" className="text-xs">
-                  <p className="font-semibold">{wellId}</p>
+                <TooltipContent side="top" className="text-xs max-w-[14rem]">
+                  <p className="font-semibold">
+                    {wellId}
+                    {isBest ? (
+                      <span className="ml-1 text-amber-600 dark:text-amber-400">(best on plate)</span>
+                    ) : null}
+                  </p>
                   {well ? (
                     <p>{value !== null ? value.toFixed(4) : 'N/A'}</p>
                   ) : (
@@ -137,16 +167,41 @@ export function PlateHeatmap({
         </div>
       ))}
 
-      {/* Color scale legend */}
-      <div className={`flex items-center mt-3 ${ml} gap-2`}>
-        <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>{min.toFixed(3)}</span>
+      {/* Color scale */}
+      <div className={`mt-4 space-y-2 ${ml}`}>
+        <div className="flex items-center gap-2">
+          <span
+            className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground shrink-0 w-16 text-right`}
+          >
+            {legendLowHigh.low}
+          </span>
+          <div
+            className="h-3 flex-1 rounded-md border border-border/80 min-w-[120px]"
+            style={{ background: gradientStops() }}
+          />
+          <span
+            className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground shrink-0 w-16`}
+          >
+            {legendLowHigh.high}
+          </span>
+        </div>
         <div
-          className="h-3 flex-1 rounded-full"
-          style={{
-            background: `linear-gradient(to right, ${interpolateColor(0)}, ${interpolateColor(0.5)}, ${interpolateColor(1)})`,
-          }}
-        />
-        <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>{max.toFixed(3)}</span>
+          className={`flex justify-between ${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground pl-16 pr-16`}
+        >
+          <span>{min.toFixed(4)}</span>
+          <span>{max.toFixed(4)}</span>
+        </div>
+        {bestOnPlate && !compact ? (
+          <p className="text-sm text-foreground">
+            <span className="font-medium text-amber-700 dark:text-amber-400">Best on plate:</span>{' '}
+            well {bestOnPlate.well} ({bestOnPlate.value.toFixed(4)})
+          </p>
+        ) : null}
+        {bestOnPlate && compact ? (
+          <p className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>
+            Best: {bestOnPlate.well} ({bestOnPlate.value.toFixed(4)})
+          </p>
+        ) : null}
       </div>
     </div>
   );
