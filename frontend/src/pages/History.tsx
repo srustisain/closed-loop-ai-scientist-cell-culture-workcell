@@ -1,8 +1,105 @@
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useIterations } from '@/api/client';
+import type { IterationSummary } from '@/types';
+
+type SortKey = keyof IterationSummary;
+type SortDir = 'asc' | 'desc';
+
+const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: 'iteration_id', label: 'Iteration' },
+  { key: 'well_count', label: 'Wells' },
+  { key: 'mean_growth_rate', label: 'Mean Growth Rate' },
+  { key: 'best_growth_rate', label: 'Best Growth Rate' },
+  { key: 'best_well', label: 'Best Well' },
+];
+
 export function History() {
+  const { data: iterations, isLoading, error } = useIterations();
+  const [sortKey, setSortKey] = useState<SortKey>('iteration_id');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const sorted = useMemo(() => {
+    if (!iterations) return [];
+    return [...iterations].sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      const cmp = typeof av === 'string' ? av.localeCompare(bv as string) : (av as number) - (bv as number);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [iterations, sortKey, sortDir]);
+
+  const handleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
+  if (isLoading) {
+    return <p className="text-muted-foreground">Loading history...</p>;
+  }
+
+  if (error) {
+    return <p className="text-destructive">Error: {(error as Error).message}</p>;
+  }
+
+  if (!iterations || iterations.length === 0) {
+    return (
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">History</h2>
+        <p className="text-muted-foreground">No iterations found.</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">History</h2>
-      <p className="text-muted-foreground">Coming in Phase 2.</p>
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">History</h2>
+
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {COLUMNS.map((col) => (
+                <TableHead
+                  key={col.key}
+                  className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                  onClick={() => handleSort(col.key)}
+                >
+                  <span className="flex items-center gap-1">
+                    {col.label}
+                    {sortKey === col.key && (
+                      <span className="text-xs">{sortDir === 'asc' ? ' ^' : ' v'}</span>
+                    )}
+                  </span>
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sorted.map((it) => (
+              <TableRow key={it.iteration_id} className="hover:bg-muted/30">
+                <TableCell>
+                  <Link
+                    to={`/iterations/${it.iteration_id}`}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    {it.iteration_id}
+                  </Link>
+                </TableCell>
+                <TableCell>{it.well_count}</TableCell>
+                <TableCell className="font-mono">{it.mean_growth_rate.toFixed(4)}</TableCell>
+                <TableCell className="font-mono">{it.best_growth_rate.toFixed(4)}</TableCell>
+                <TableCell className="font-mono">{it.best_well}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

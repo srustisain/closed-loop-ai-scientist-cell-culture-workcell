@@ -69,8 +69,11 @@ export function PlateHeatmap({ results, metric, selectedWell, onSelectWell }: Pr
             return (
               <Tooltip key={wellId}>
                 <TooltipTrigger asChild>
-                  <button
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => onSelectWell(wellId)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectWell(wellId); }}
                     className={`w-9 h-9 mx-0.5 rounded-full border-2 transition-all cursor-pointer ${
                       isSelected
                         ? 'border-foreground scale-110 shadow-md'
