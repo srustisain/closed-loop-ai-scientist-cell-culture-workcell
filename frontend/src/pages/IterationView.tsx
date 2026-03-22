@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { PlateHeatmap } from '@/components/plate/PlateHeatmap';
 import { WellDetailPanel } from '@/components/plate/WellDetailPanel';
 import { useIteration } from '@/api/client';
@@ -19,7 +20,16 @@ export function IterationView() {
   }, [selectedWell, iteration]);
 
   if (isLoading) {
-    return <p className="text-muted-foreground">Loading iteration data...</p>;
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-52" />
+        </div>
+        <Skeleton className="h-4 w-96" />
+        <Skeleton className="h-[420px] w-full max-w-3xl" />
+      </div>
+    );
   }
 
   if (error) {

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useIterations } from '@/api/client';
 import type { IterationSummary } from '@/types';
 
@@ -40,7 +41,12 @@ export function History() {
   };
 
   if (isLoading) {
-    return <p className="text-muted-foreground">Loading history...</p>;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-[200px] w-full max-w-4xl" />
+      </div>
+    );
   }
 
   if (error) {

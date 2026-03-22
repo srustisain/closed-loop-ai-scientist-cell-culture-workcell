@@ -10,6 +10,10 @@ interface Props {
   metric: MetricKey;
   selectedWell: string | null;
   onSelectWell: (well: string) => void;
+  /** When set, wells are colored using this range (e.g. across multiple iterations). */
+  colorRange?: { min: number; max: number };
+  /** Smaller wells for side-by-side compare view. */
+  compact?: boolean;
 }
 
 function getMetricValue(well: WellResult, metric: MetricKey): number | null {
@@ -25,18 +29,32 @@ function interpolateColor(t: number): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-export function PlateHeatmap({ results, metric, selectedWell, onSelectWell }: Props) {
+export function PlateHeatmap({
+  results,
+  metric,
+  selectedWell,
+  onSelectWell,
+  colorRange: colorRangeProp,
+  compact = false,
+}: Props) {
   const wellMap = useMemo(() => {
     const map = new Map<string, WellResult>();
     for (const r of results) map.set(r.well, r);
     return map;
   }, [results]);
 
-  const { min, max } = useMemo(() => {
+  const localRange = useMemo(() => {
     const values = results.map((r) => getMetricValue(r, metric)).filter((v): v is number => v !== null);
     if (values.length === 0) return { min: 0, max: 1 };
     return { min: Math.min(...values), max: Math.max(...values) };
   }, [results, metric]);
+
+  const { min, max } = colorRangeProp ?? localRange;
+
+  const cell = compact ? 'w-6 h-6 mx-0.5' : 'w-9 h-9 mx-0.5';
+  const colW = compact ? 'w-6' : 'w-10';
+  const rowLabel = compact ? 'w-6 text-[10px]' : 'w-8';
+  const ml = compact ? 'ml-6' : 'ml-8';
 
   const normalize = (v: number | null): number => {
     if (v === null || max === min) return 0.5;
@@ -46,9 +64,12 @@ export function PlateHeatmap({ results, metric, selectedWell, onSelectWell }: Pr
   return (
     <div className="inline-block">
       {/* Column headers */}
-      <div className="flex ml-8 mb-1">
+      <div className={`flex ${ml} mb-1`}>
         {COLS.map((col) => (
-          <div key={col} className="w-10 text-center text-xs text-muted-foreground font-medium">
+          <div
+            key={col}
+            className={`${colW} text-center ${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground font-medium`}
+          >
             {col}
           </div>
         ))}
@@ -57,7 +78,11 @@ export function PlateHeatmap({ results, metric, selectedWell, onSelectWell }: Pr
       {/* Plate grid */}
       {ROWS.map((row) => (
         <div key={row} className="flex items-center mb-1">
-          <div className="w-8 text-xs text-muted-foreground font-medium text-right pr-2">{row}</div>
+          <div
+            className={`${rowLabel} ${compact ? '' : 'text-xs'} text-muted-foreground font-medium text-right pr-2`}
+          >
+            {row}
+          </div>
           {COLS.map((col) => {
             const wellId = `${row}${col}`;
             const well = wellMap.get(wellId);
@@ -74,7 +99,7 @@ export function PlateHeatmap({ results, metric, selectedWell, onSelectWell }: Pr
                     tabIndex={0}
                     onClick={() => onSelectWell(wellId)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectWell(wellId); }}
-                    className={`w-9 h-9 mx-0.5 rounded-full border-2 transition-all cursor-pointer ${
+                    className={`${cell} rounded-full border-2 transition-all cursor-pointer ${
                       isSelected
                         ? 'border-foreground scale-110 shadow-md'
                         : 'border-transparent hover:border-muted-foreground/50 hover:scale-105'
@@ -97,15 +122,15 @@ export function PlateHeatmap({ results, metric, selectedWell, onSelectWell }: Pr
       ))}
 
       {/* Color scale legend */}
-      <div className="flex items-center mt-3 ml-8 gap-2">
-        <span className="text-xs text-muted-foreground">{min.toFixed(3)}</span>
+      <div className={`flex items-center mt-3 ${ml} gap-2`}>
+        <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>{min.toFixed(3)}</span>
         <div
           className="h-3 flex-1 rounded-full"
           style={{
             background: `linear-gradient(to right, ${interpolateColor(0)}, ${interpolateColor(0.5)}, ${interpolateColor(1)})`,
           }}
         />
-        <span className="text-xs text-muted-foreground">{max.toFixed(3)}</span>
+        <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>{max.toFixed(3)}</span>
       </div>
     </div>
   );

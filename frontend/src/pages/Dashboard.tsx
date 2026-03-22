@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useIterations } from '@/api/client';
 import { OptimizationProgress } from '@/components/charts/OptimizationProgress';
 
@@ -7,7 +8,17 @@ export function Dashboard() {
   const { data: iterations, isLoading, error } = useIterations();
 
   if (isLoading) {
-    return <p className="text-muted-foreground">Loading dashboard...</p>;
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-40" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+        </div>
+        <Skeleton className="h-[320px] w-full" />
+      </div>
+    );
   }
 
   if (error) {
