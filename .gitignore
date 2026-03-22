@@ -134,8 +134,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Root-only: a bare `lib/` rule ignores every `**/lib/` folder (e.g. frontend/src/lib).
+/lib/
+/lib64/
 parts/
 sdist/
 var/
