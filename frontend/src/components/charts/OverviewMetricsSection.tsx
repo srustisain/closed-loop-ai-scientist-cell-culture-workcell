@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MetricPairOverview } from './MetricPairOverview';
+import { IterationNavChips } from './IterationNavChips';
 import { DASHBOARD_METRICS } from '@/lib/metricDefinitions';
 import type { IterationMetrics } from '@/types';
 import type { MetricKey } from '@/types';
@@ -52,7 +53,8 @@ export function OverviewMetricsSection({ iterations, onIterationLegendClick }: P
           iteration (same palette as Detailed view). Diamonds mark the best well per iteration using
           the <span className="font-medium text-foreground">vertical (Y)</span> metric only. Click
           an iteration in the legend below the chart to add or remove it from the dashboard filter
-          (same as the checkboxes above).
+          (same as the checkboxes above). Use <span className="font-medium text-foreground">Open iteration</span>{' '}
+          below to open an iteration page.
         </p>
         <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="space-y-1.5">
@@ -91,13 +93,14 @@ export function OverviewMetricsSection({ iterations, onIterationLegendClick }: P
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-0">
+      <CardContent className="space-y-3">
         <MetricPairOverview
           iterations={iterations}
           xMetric={xMetric}
           yMetric={yMetric}
           onIterationLegendClick={onIterationLegendClick}
         />
+        <IterationNavChips iterationIds={iterations.map((i) => i.iteration_id)} />
       </CardContent>
     </Card>
   );
