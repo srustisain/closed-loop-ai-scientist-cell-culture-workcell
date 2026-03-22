@@ -106,7 +106,7 @@ export function DashboardIterationFilter({
                   <SelectValue placeholder="First" />
                 </SelectTrigger>
                 <SelectContent>
-                  {sortedIds.map((id) => (
+                  {sortedIds.map((id: string) => (
                     <SelectItem key={id} value={id}>
                       {id}
                     </SelectItem>
@@ -123,7 +123,7 @@ export function DashboardIterationFilter({
                   <SelectValue placeholder="Last" />
                 </SelectTrigger>
                 <SelectContent>
-                  {sortedIds.map((id) => (
+                  {sortedIds.map((id: string) => (
                     <SelectItem key={id} value={id}>
                       {id}
                     </SelectItem>
@@ -142,7 +142,7 @@ export function DashboardIterationFilter({
           role="group"
           aria-label="Include iterations"
         >
-          {sortedIds.map((id) => (
+          {sortedIds.map((id: string) => (
             <div key={id} className="flex items-center gap-2">
               <Checkbox
                 id={`iter-${id}`}
