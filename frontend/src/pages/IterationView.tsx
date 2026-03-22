@@ -54,6 +54,14 @@ export function IterationView() {
     );
   }
 
+  const growthRates = iteration.results.map((r) => r.growth_rate);
+  const bestGrowth =
+    growthRates.length > 0 ? Math.max(...growthRates) : null;
+  const meanGrowth =
+    growthRates.length > 0
+      ? growthRates.reduce((s, v) => s + v, 0) / growthRates.length
+      : null;
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -84,13 +92,13 @@ export function IterationView() {
         <span className="text-muted-foreground">
           Best growth rate:{' '}
           <span className="text-foreground font-medium">
-            {Math.max(...iteration.results.map((r) => r.growth_rate)).toFixed(4)} /h
+            {bestGrowth != null ? `${bestGrowth.toFixed(4)} /h` : '—'}
           </span>
         </span>
         <span className="text-muted-foreground">
           Mean growth rate:{' '}
           <span className="text-foreground font-medium">
-            {(iteration.results.reduce((s, r) => s + r.growth_rate, 0) / iteration.results.length).toFixed(4)} /h
+            {meanGrowth != null ? `${meanGrowth.toFixed(4)} /h` : '—'}
           </span>
         </span>
       </div>

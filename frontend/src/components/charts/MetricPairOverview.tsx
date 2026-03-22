@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import Plot from './Plot';
 import { MetricPairDefinitionButton } from './MetricPairDefinitionButton';
+import { iterationIdFromLegendClick } from '@/lib/chartIterationLegend';
 import { bestWellForMetric, getMetricNumericValue } from '@/lib/metrics';
 import { colorForIterationId } from '@/lib/iterationColors';
 import { METRIC_LABELS } from '@/types';
@@ -10,6 +11,7 @@ type Props = {
   iterations: IterationMetrics[];
   xMetric: MetricKey;
   yMetric: MetricKey;
+  onIterationLegendClick?: (iterationId: string) => void;
 };
 
 function paddedRange(values: number[]): [number, number] {
@@ -25,7 +27,7 @@ function paddedRange(values: number[]): [number, number] {
 /**
  * One 2D scatter: x and y are real metrics per well; color = iteration; diamonds = best on **y** per iteration.
  */
-export function MetricPairOverview({ iterations, xMetric, yMetric }: Props) {
+export function MetricPairOverview({ iterations, xMetric, yMetric, onIterationLegendClick }: Props) {
   const chart = useMemo(() => {
     const categoryOrder = iterations.map((i) => i.iteration_id);
     const traces: object[] = [];
@@ -121,15 +123,64 @@ export function MetricPairOverview({ iterations, xMetric, yMetric }: Props) {
     const xRange = allX.length ? paddedRange(allX) : ([0, 1] as [number, number]);
     const yRange = allY.length ? paddedRange(allY) : ([0, 1] as [number, number]);
 
+    const xTitle = METRIC_LABELS[xMetric];
+    const yTitle = METRIC_LABELS[yMetric];
+
+    const layout = {
+      uirevision: `pair-${xMetric}-${yMetric}`,
+      xaxis: {
+        title: { text: xTitle },
+        gridcolor: '#e5e7eb',
+        range: xRange,
+        zeroline: false,
+        fixedrange: false,
+      },
+      yaxis: {
+        title: { text: yTitle },
+        gridcolor: '#e5e7eb',
+        range: yRange,
+        zeroline: false,
+        fixedrange: false,
+      },
+      margin: { l: 58, r: 12, t: 24, b: 88 },
+      height: 420,
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent',
+      font: { size: 11 },
+      showlegend: true,
+      legend: {
+        orientation: 'h' as const,
+        y: -0.28,
+        x: 0,
+        xanchor: 'left' as const,
+        font: { size: 10 },
+      },
+      hovermode: 'closest' as const,
+    };
+
+    const config = { displayModeBar: false, responsive: true };
+
     return {
       traces,
-      xTitle: METRIC_LABELS[xMetric],
-      yTitle: METRIC_LABELS[yMetric],
+      xTitle,
+      yTitle,
       xRange,
       yRange,
       hasWellPoints: iterationTraceCount > 0,
+      layout,
+      config,
     };
   }, [iterations, xMetric, yMetric]);
+
+  const validIterationIds = iterations.map((i) => i.iteration_id);
+
+  const handleLegendClick = (e: Readonly<{ curveNumber: number }>) => {
+    if (!onIterationLegendClick) return true;
+    const id = iterationIdFromLegendClick(chart.traces, e.curveNumber, validIterationIds);
+    if (!id) return false;
+    onIterationLegendClick(id);
+    return false;
+  };
 
   if (!chart.hasWellPoints) {
     return (
@@ -149,42 +200,16 @@ export function MetricPairOverview({ iterations, xMetric, yMetric }: Props) {
         </h3>
         <MetricPairDefinitionButton xMetric={xMetric} yMetric={yMetric} />
       </div>
-      <Plot
-        data={chart.traces}
-        layout={{
-          xaxis: {
-            title: { text: chart.xTitle },
-            gridcolor: '#e5e7eb',
-            range: chart.xRange,
-            zeroline: false,
-            fixedrange: false,
-          },
-          yaxis: {
-            title: { text: chart.yTitle },
-            gridcolor: '#e5e7eb',
-            range: chart.yRange,
-            zeroline: false,
-            fixedrange: false,
-          },
-          margin: { l: 58, r: 12, t: 24, b: 48 },
-          height: 420,
-          paper_bgcolor: 'transparent',
-          plot_bgcolor: 'transparent',
-          font: { size: 11 },
-          showlegend: true,
-          legend: {
-            orientation: 'h',
-            y: -0.28,
-            x: 0,
-            xanchor: 'left',
-            font: { size: 10 },
-          },
-          hovermode: 'closest' as const,
-        }}
-        config={{ displayModeBar: false, responsive: true }}
-        useResizeHandler
-        style={{ width: '100%' }}
-      />
+      <div className="relative w-full pb-1">
+        <Plot
+          data={chart.traces}
+          layout={chart.layout}
+          config={chart.config}
+          useResizeHandler
+          style={{ width: '100%' }}
+          onLegendClick={onIterationLegendClick ? handleLegendClick : undefined}
+        />
+      </div>
     </div>
   );
 }

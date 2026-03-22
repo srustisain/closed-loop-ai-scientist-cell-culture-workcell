@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import Plot from './Plot';
 import { MetricDefinitionButton } from './MetricDefinitionButton';
+import { iterationIdFromLegendClick } from '@/lib/chartIterationLegend';
 import { jitter01 } from '@/lib/hashJitter';
 import { colorForIterationId, hexToRgba } from '@/lib/iterationColors';
 import { bestWellForMetric, getMetricNumericValue } from '@/lib/metrics';
@@ -11,6 +12,7 @@ type Props = {
   metric: MetricKey;
   /** Same order as iteration order on the x-axis (e.g. sorted by id). */
   iterations: IterationMetrics[];
+  onIterationLegendClick?: (iterationId: string) => void;
 };
 
 function paddedYRange(values: number[]): [number, number] {
@@ -27,7 +29,7 @@ function paddedYRange(values: number[]): [number, number] {
 /**
  * One violin + jittered wells per iteration; colors match Overview (iteration palette).
  */
-export function MetricViolinDistribution({ metric, iterations }: Props) {
+export function MetricViolinDistribution({ metric, iterations, onIterationLegendClick }: Props) {
   const chart = useMemo(() => {
     const categoryOrder = iterations.map((i) => i.iteration_id);
     const catIndex = new Map(categoryOrder.map((id, i) => [id, i]));
@@ -143,16 +145,69 @@ export function MetricViolinDistribution({ metric, iterations }: Props) {
         ? `${omittedNullDoubling} well readings omitted (no valid doubling time).`
         : null;
 
+    const nCats = categoryOrder.length;
+    const tickvals = categoryOrder.map((_, i) => i);
+    const yTitle = METRIC_LABELS[metric];
+
+    /** Stable identity for react-plotly; avoids Plotly.react on every parent render (see debug H1). */
+    const layout = {
+      uirevision: `violin-${metric}`,
+      xaxis: {
+        title: { text: 'Iteration' },
+        type: 'linear' as const,
+        tickmode: 'array' as const,
+        tickvals,
+        ticktext: categoryOrder,
+        range: [-0.55, Math.max(nCats - 1, 0) + 0.55] as [number, number],
+        zeroline: false,
+        gridcolor: '#e5e7eb',
+      },
+      yaxis: {
+        title: { text: yTitle },
+        gridcolor: '#e5e7eb',
+        range: yRange,
+        fixedrange: false,
+      },
+      margin: { l: 58, r: 12, t: 58, b: 80 },
+      height: 300,
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent',
+      font: { size: 11 },
+      showlegend: true,
+      legend: {
+        orientation: 'h' as const,
+        y: -0.28,
+        x: 0,
+        xanchor: 'left' as const,
+        font: { size: 11 },
+      },
+      hovermode: 'closest' as const,
+    };
+
+    const config = { displayModeBar: false, responsive: true };
+
     return {
       traces,
       categoryOrder,
-      yTitle: METRIC_LABELS[metric],
+      yTitle,
       emptyNote,
       yRange,
-      nCats: categoryOrder.length,
+      nCats,
       hasData: traces.length > 0,
+      layout,
+      config,
     };
   }, [metric, iterations]);
+
+  const validIterationIds = iterations.map((i) => i.iteration_id);
+
+  const handleLegendClick = (e: Readonly<{ curveNumber: number }>) => {
+    if (!onIterationLegendClick) return true;
+    const id = iterationIdFromLegendClick(chart.traces, e.curveNumber, validIterationIds);
+    if (!id) return false;
+    onIterationLegendClick(id);
+    return false;
+  };
 
   if (!chart.hasData) {
     return (
@@ -170,8 +225,6 @@ export function MetricViolinDistribution({ metric, iterations }: Props) {
     );
   }
 
-  const tickvals = chart.categoryOrder.map((_, i) => i);
-
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -181,44 +234,16 @@ export function MetricViolinDistribution({ metric, iterations }: Props) {
       {chart.emptyNote ? (
         <p className="text-xs text-muted-foreground">{chart.emptyNote}</p>
       ) : null}
-      <Plot
-        data={chart.traces}
-        layout={{
-          xaxis: {
-            title: { text: 'Iteration' },
-            type: 'linear',
-            tickmode: 'array',
-            tickvals,
-            ticktext: chart.categoryOrder,
-            range: [-0.55, Math.max(chart.nCats - 1, 0) + 0.55],
-            zeroline: false,
-            gridcolor: '#e5e7eb',
-          },
-          yaxis: {
-            title: { text: chart.yTitle },
-            gridcolor: '#e5e7eb',
-            range: chart.yRange,
-            fixedrange: false,
-          },
-          margin: { l: 58, r: 12, t: 58, b: 52 },
-          height: 300,
-          paper_bgcolor: 'transparent',
-          plot_bgcolor: 'transparent',
-          font: { size: 11 },
-          showlegend: true,
-          legend: {
-            orientation: 'h',
-            y: -0.28,
-            x: 0,
-            xanchor: 'left',
-            font: { size: 11 },
-          },
-          hovermode: 'closest' as const,
-        }}
-        config={{ displayModeBar: false, responsive: true }}
-        useResizeHandler
-        style={{ width: '100%' }}
-      />
+      <div className="relative w-full mb-2">
+        <Plot
+          data={chart.traces}
+          layout={chart.layout}
+          config={chart.config}
+          useResizeHandler
+          style={{ width: '100%' }}
+          onLegendClick={onIterationLegendClick ? handleLegendClick : undefined}
+        />
+      </div>
     </div>
   );
 }

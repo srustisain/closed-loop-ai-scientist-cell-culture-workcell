@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,6 +80,16 @@ export function Dashboard() {
     void refetchList();
     void queryClient.invalidateQueries({ queryKey: ['iteration'] });
   };
+
+  /** Legend clicks on charts toggle iteration visibility (same as the filter checkboxes). */
+  const toggleIterationInFilter = useCallback((iterationId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(iterationId)) next.delete(iterationId);
+      else next.add(iterationId);
+      return next;
+    });
+  }, []);
 
   if (listLoading) {
     return (
@@ -216,10 +226,16 @@ export function Dashboard() {
               <TabsTrigger value="detailed">Detailed</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="mt-0">
-              <OverviewMetricsSection iterations={filteredMetrics} />
+              <OverviewMetricsSection
+                iterations={filteredMetrics}
+                onIterationLegendClick={toggleIterationInFilter}
+              />
             </TabsContent>
             <TabsContent value="detailed" className="mt-0">
-              <OptimizationMetricsSection iterations={filteredMetrics} />
+              <OptimizationMetricsSection
+                iterations={filteredMetrics}
+                onIterationLegendClick={toggleIterationInFilter}
+              />
             </TabsContent>
           </Tabs>
         )

@@ -15,13 +15,15 @@ import { METRIC_LABELS } from '@/types';
 
 type Props = {
   iterations: IterationMetrics[];
+  /** Clicking an iteration in the Plotly legend toggles it in the dashboard filter. */
+  onIterationLegendClick?: (iterationId: string) => void;
 };
 
 /** Default: biomass (x) vs growth rate (y) — trade-off view. */
 const DEFAULT_X: MetricKey = 'max_od';
 const DEFAULT_Y: MetricKey = 'growth_rate';
 
-export function OverviewMetricsSection({ iterations }: Props) {
+export function OverviewMetricsSection({ iterations, onIterationLegendClick }: Props) {
   const [xMetric, setXMetric] = useState<MetricKey>(DEFAULT_X);
   const [yMetric, setYMetric] = useState<MetricKey>(DEFAULT_Y);
 
@@ -48,7 +50,9 @@ export function OverviewMetricsSection({ iterations }: Props) {
         <p className="text-xs text-muted-foreground font-normal leading-relaxed">
           Each point is one well; horizontal and vertical axes are real metrics. Color matches
           iteration (same palette as Detailed view). Diamonds mark the best well per iteration using
-          the <span className="font-medium text-foreground">vertical (Y)</span> metric only.
+          the <span className="font-medium text-foreground">vertical (Y)</span> metric only. Click
+          an iteration in the legend below the chart to add or remove it from the dashboard filter
+          (same as the checkboxes above).
         </p>
         <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="space-y-1.5">
@@ -87,8 +91,13 @@ export function OverviewMetricsSection({ iterations }: Props) {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <MetricPairOverview iterations={iterations} xMetric={xMetric} yMetric={yMetric} />
+      <CardContent className="space-y-0">
+        <MetricPairOverview
+          iterations={iterations}
+          xMetric={xMetric}
+          yMetric={yMetric}
+          onIterationLegendClick={onIterationLegendClick}
+        />
       </CardContent>
     </Card>
   );
