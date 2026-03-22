@@ -11,13 +11,13 @@ type Props = {
 };
 
 /**
- * Consistent page title + lead text across the app (below sidebar, above main content).
+ * Page section title + lead text (below the site header in the main column).
  */
 export function PageHeader({ title, description, titleAddon, className }: Props) {
   return (
     <header className={cn('space-y-2', className)}>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
         {titleAddon}
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">{description}</p>

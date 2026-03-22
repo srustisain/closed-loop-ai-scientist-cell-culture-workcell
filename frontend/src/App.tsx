@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -7,6 +8,7 @@ import { Dashboard } from '@/pages/Dashboard';
 import { IterationView } from '@/pages/IterationView';
 import { History } from '@/pages/History';
 import { Compare } from '@/pages/Compare';
+import { SITE_DISPLAY_TITLE } from '@/config/site';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,6 +20,10 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  useEffect(() => {
+    document.title = SITE_DISPLAY_TITLE;
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
