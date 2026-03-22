@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import Plot from './Plot';
-import { MetricDefinitionButton } from './MetricDefinitionButton';
+import { MetricPairDefinitionButton } from './MetricPairDefinitionButton';
 import { bestWellForMetric, getMetricNumericValue } from '@/lib/metrics';
 import { colorForIterationId } from '@/lib/iterationColors';
 import { METRIC_LABELS } from '@/types';
@@ -142,12 +142,12 @@ export function MetricPairOverview({ iterations, xMetric, yMetric }: Props) {
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium">
-          {chart.yTitle} vs {chart.xTitle}
-        </span>
-        <MetricDefinitionButton metric={xMetric} />
-        <MetricDefinitionButton metric={yMetric} />
+      <div className="flex gap-2.5 items-start">
+        <h3 className="min-w-0 flex-1 text-base font-semibold leading-snug tracking-tight text-foreground">
+          {chart.yTitle}{' '}
+          <span className="font-normal text-muted-foreground">vs</span> {chart.xTitle}
+        </h3>
+        <MetricPairDefinitionButton xMetric={xMetric} yMetric={yMetric} />
       </div>
       <Plot
         data={chart.traces}
