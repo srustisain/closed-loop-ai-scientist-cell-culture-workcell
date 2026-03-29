@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.6
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.19.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [pydantic, numpy]
+        args: [--config-file=pyproject.toml]
+        files: ^src/
+
+  - repo: local
+    hooks:
+      - id: tests
+        name: tests
+        entry: uv run pytest --no-header -q --cov-fail-under=88
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: frontend-lint
+        name: frontend eslint
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        pass_filenames: false
+        files: ^frontend/.*\.(tsx?|jsx?|[cm]?js)$

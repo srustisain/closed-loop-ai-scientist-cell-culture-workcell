@@ -256,35 +256,54 @@ flowchart LR
 
 **Status**: 🔶 Partially Defined
 
-Transforms raw OD data into structured datasets linking designs to outcomes.
+Transforms raw OD data into structured datasets linking designs to outcomes. The platereader CSVs only contain OD readings -- they have no knowledge of what experimental parameters were used in each well. The parser joins the OD data with the well-to-design mapping so the Bayesian optimizer can learn which parameter combinations produce faster growth.
+
+**Inputs**
+
+| Input | Source | Description |
+|-------|--------|-------------|
+| Per-well absorbance CSVs | Monomer platereader | One CSV per well (`well_A1_absorbance.csv`, etc.) with columns: `timestamp`, `absorbance_od600`, `cell_concentration_cells_per_ml`, `parent_well`, `consider_data` |
+| Well-to-design mapping | Experiment Designer | JSON mapping each well to its design parameters (e.g. `cell_volume_uL`, `mix_height_mm`, `mix_reps`) |
 
 **Processing Steps**
 
 ```mermaid
 flowchart LR
-    RAW["Raw OD<br/>from Tecan"] --> LINK["Link to<br/>Well Map"]
-    LINK --> CALC["Calculate<br/>Metrics"]
-    CALC --> STORE["Store<br/>Iteration"]
-    STORE --> OUT1["→ Experiment Designer"]
+    RAW["Per-well OD CSVs<br/>from platereader"] --> FILTER["Filter to<br/>consider_data=True"]
+    DESIGN["Well-to-Design<br/>Mapping JSON"] --> LINK
+    FILTER --> LINK["Link well →<br/>design params"]
+    LINK --> CALC["Fit exponential<br/>growth curve"]
+    CALC --> STORE["Write<br/>growth_metrics.json"]
+    STORE --> OUT1["→ Experiment Designer (BO)"]
     STORE --> OUT2["→ Webapp"]
 ```
+
+**Output**
+
+Growth metrics JSON linking each well's design parameters to its growth outcome. Stored at `data/iterations/iter_NNN/analysis/growth_metrics.json`.
 
 **Core Data Structure**
 
 ```
 Iteration N
-├── metadata (id, timestamps, reagents)
-├── designs (96 entries: well → parameters)
-└── results (96 entries: well → OD time series + metrics)
+├── input/
+│   └── well_to_design_mapping.json   (from Experiment Designer)
+├── output/
+│   └── well_*_absorbance.csv         (from platereader, 96 files)
+└── analysis/
+    └── growth_metrics.json           (produced by this parser)
 ```
 
 **Calculated Metrics** (per well)
 
-| Metric | Purpose |
-|--------|---------|
-| Exponential slope | Primary optimization target |
-| Doubling time | Interpretable growth metric |
-| R² value | Data quality indicator |
+Cells go through a lag phase (slow/no growth), an exponential phase (dividing at a constant rate), and a stationary phase (growth stops). We fit the exponential phase to extract growth speed.
+
+| Metric | Definition | Purpose |
+|--------|------------|---------|
+| Growth rate (`growth_rate`, 1/hour) | Slope of ln(OD) vs time during exponential phase. From the model OD(t) = OD_0 * e^(mu*t), mu is the growth rate. | **Primary optimization target**: higher = faster cell division. This is the number the Bayesian optimizer maximizes. |
+| Max OD (`max_od`) | Highest OD600 reading observed during the valid data window. Represents peak cell density achieved. | **Second optimization target** for multi-objective BO: higher = more total biomass. Can trade off against growth rate (e.g., high glucose may give fast initial growth but acid crash lowers final OD). |
+| Doubling time (`doubling_time_hours`) | ln(2) / growth_rate. How long it takes the population to double. | Human-interpretable equivalent of growth rate. Useful for sanity-checking against known literature values. |
+| R-squared (`r_squared`, 0-1) | Coefficient of determination for the linear regression on ln(OD) vs time. | **Data quality indicator**. Above ~0.95 = reliable estimate. Below ~0.8 = suspect (well may not have entered exponential phase). Lets the optimizer down-weight unreliable wells. |
 
 ---
 
