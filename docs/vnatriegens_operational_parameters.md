@@ -89,6 +89,14 @@ Mixing before OD measurement resuspends settled cells and ensures homogeneous re
 
 **Protocol:** Inoculate preculture at OD 0.05 in BHI+v2 or LBv2, grow 3–4h at 37°C/350 rpm until OD ~1.5 (exponential phase), then dilute into experimental plate.
 
+**Medium carryover consideration:** When preculture is in rich medium (BHI/LBv2) but experimental plate uses defined medium, the carryover nutrients from preculture can confound results. At 1:100 dilution, ~1% of final well volume is preculture medium. At 1:1000, carryover is negligible. Consider washing cells (centrifuge + resuspend in experimental medium) if carryover matters.
+
+| Dilution Ratio | Transfer into 200 µL | Carryover | V. natriegens Growth Time to OD 1.0 |
+|----------------|---------------------|-----------|--------------------------------------|
+| 1:20 (10 µL) | Fast start, high carryover | 5% | ~30 min |
+| 1:100 (2 µL) | Moderate | 1% | ~1 h |
+| 1:1000 (0.2 µL) | Slow start, minimal carryover | 0.1% | ~1.5–2 h |
+
 ### 7. Aspiration / Dispense Speed — 50 to 300 µL/s
 
 Pipetting speed affects cell viability through shear stress and mixing quality through turbulence.
