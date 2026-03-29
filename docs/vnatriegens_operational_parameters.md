@@ -235,6 +235,20 @@ These aren't independent knobs but emerge from combinations:
 | Effective doubling time | All above + media composition | What you actually measure |
 | Time to stationary phase | Inoculation OD × fill volume × glucose concentration × OTR | Determines experimental duration |
 
+### Critical Operational × Media Interactions
+
+These cross-domain interactions are the most important to understand for experimental design:
+
+| Interaction | Mechanism | Expected Behavior |
+|-------------|-----------|-------------------|
+| **Fill volume × Glucose** | More glucose → more O₂ consumed → earlier O₂ limitation at large volumes | At 200 µL + 20 g/L glucose, expect O₂ limitation by OD ~2. At 50 µL + 5 g/L, aerobic growth may persist to OD ~8 |
+| **Fill volume × MOPS** | Higher MOPS adds osmolality; but smaller volume means faster acid accumulation per unit buffer | 50 µL wells with 100 mM MOPS will pH-crash faster than 200 µL wells with same MOPS |
+| **Inoculation OD × Glucose** | Higher starting OD means less glucose per cell available → earlier stationary phase | At OD 0.25 start + 5 g/L glucose, may reach stationary in ~2h |
+| **Inoculation OD × Fill volume** | Higher inoculation OD + larger volume = immediate O₂ limitation | OD 0.25 start in 200 µL will be O₂-limited almost immediately |
+| **Fill volume × Pathlength** | Variable fill volume means variable OD-to-biomass conversion | MUST correct pathlength if fill volume is a BO parameter |
+| **Shaking speed × Fill volume** | Higher fill volume needs higher shaking speed to maintain same OTR | At 200 µL, even max shaking may not prevent O₂ limitation |
+| **Mix cycles × Fill volume** | More mix cycles at low volumes risks aspirating entire well | At 50 µL fill, limit mix volume to 25–30 µL (50–60%) |
+
 ---
 
 ## Recommended Search Space for Bayesian Optimization
