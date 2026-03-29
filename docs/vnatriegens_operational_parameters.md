@@ -113,15 +113,43 @@ Pipetting speed affects cell viability through shear stress and mixing quality t
 
 **Why it matters:** Dispensing into the liquid (submerged) reduces splashing and bubble formation but increases cross-contamination risk. Dispensing above the liquid surface avoids contamination but creates droplets that affect OD reads. For inoculation, dispense at mid-well depth.
 
+### 9. Incubation Duration / Growth Window — 2 to 24 hours
+
+V. natriegens reaches stationary phase much faster than E. coli. The growth window determines what phase you capture.
+
+| Duration | What You Capture | V. natriegens Context |
+|----------|-----------------|----------------------|
+| 2–4 h | Exponential phase only | Sufficient to measure µ_max in most media |
+| 4–8 h | Full growth curve (lag → exp → stationary) | Ideal for growth rate + yield measurement |
+| 8–12 h | Post-stationary, pH crash risk | Captures acetate overflow & death phase if unbuffered |
+| 12–24 h | Extended stationary / death phase | Only useful for survival/viability studies |
+
+**Critical for V. natriegens:** At µ = 4.4/h (9 min doubling), cells go from OD 0.05 to OD ~50 in just 5 hours if nutrients were unlimited. In practice, glucose depletion occurs at 3–6h depending on concentration. **A 4–8h window captures the complete growth phenotype.**
+
+**Interaction:** Duration interacts strongly with MOPS buffer concentration. Without sufficient buffer, pH crashes by 4h and cells die by 12h.
+
+### 10. Well Geometry — Round vs Square vs Deep Well
+
+| Well Type | Max Volume | OTR_max | kₗa | Best For |
+|-----------|-----------|---------|------|----------|
+| Standard round (330 µL) | 200 µL working | ~10–15 mmol/L/h | 0.036 s⁻¹ | Plate reader kinetics |
+| Deep-well round (1 mL) | 500 µL working | ~20–30 mmol/L/h | — | Intermediate aeration |
+| Deep-well square (2 mL) | 500 µL working | ~38–40 mmol/L/h | 0.052 s⁻¹ | High O₂ demand organisms |
+| Half-deep-well square | 300 µL working | ~30 mmol/L/h | — | Balance of OTR & reader compatibility |
+
+**Why it matters for V. natriegens:** Square deep-well plates provide 44% higher kₗa than round wells (0.052 vs 0.036 s⁻¹) due to baffling effect. V. natriegens' extreme O₂ demand makes this difference significant. However, deep-well plates are incompatible with most plate readers for continuous OD monitoring.
+
+**Practical compromise:** Use standard round-well plates in the plate reader (accept lower OTR), OR use deep-well square plates on orbital shaker with endpoint reads.
+
 ---
 
 ## Parameters to Fix (Plate-Wide, Non-Variable)
 
-### 7. Shaking Pattern — Double Orbital (Fixed)
+### 11. Shaking Pattern — Double Orbital (Fixed)
 
 Double-orbital provides better mixing and O₂ transfer than linear or single orbital in round-well plates. Fix at double-orbital when available.
 
-### 8. Plate Seal / Lid Type — Gas-Permeable Seal (Fixed)
+### 12. Plate Seal / Lid Type — Gas-Permeable Seal (Fixed)
 
 | Seal Type | Evaporation | O₂ Transfer | Recommendation |
 |-----------|-------------|-------------|----------------|
@@ -130,15 +158,15 @@ Double-orbital provides better mixing and O₂ transfer than linear or single or
 | Gas-permeable seal | Low (~5% over 24h) | Good | Recommended for V. natriegens |
 | Adhesive film | Very low | Poor (O₂ limited) | NOT recommended |
 
-### 9. Temperature — 37°C (Fixed)
+### 13. Temperature — 37°C (Fixed)
 
 Optimal for growth rate. Some studies use 30°C for protein expression (to reduce misfolding), but for growth optimization, 37°C is standard.
 
-### 10. Humidity — 80%+ (Fixed)
+### 14. Humidity — 80%+ (Fixed)
 
 Reduces evaporation. Most plate readers with incubation chambers support humidity control. Set to maximum available.
 
-### 11. Edge Well Strategy — Blank/Water Only (Fixed)
+### 15. Edge Well Strategy — Blank/Water Only (Fixed)
 
 Edge wells (rows A/H, columns 1/12) show 10–30% higher evaporation. Fill with water or blank medium as evaporation barriers. Use only interior 60 wells for experiments.
 
