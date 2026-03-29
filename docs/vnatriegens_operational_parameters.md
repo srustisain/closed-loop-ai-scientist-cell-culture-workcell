@@ -2,6 +2,18 @@
 
 Beyond media composition (NaCl, MOPS, glucose, Mg²+, casamino acids), these are the **physical and operational parameters** that significantly affect V. natriegens growth in 96-well plate format. These are the knobs the liquid handler and plate reader can turn.
 
+## Executive Summary
+
+**Total parameters identified: 18** (10 variable/optimizable + 8 fixed/protocol)
+
+**Top 2 operational parameters to include in Bayesian Optimization (alongside 5 media params):**
+1. **Fill volume** (50–250 µL) — Controls oxygen transfer rate, the #1 growth-limiting factor in microplates
+2. **Inoculation OD600** (0.01–0.25) — Controls lag phase duration and time to O₂ limitation
+
+**Recommended total BO search space: 7 dimensions** (5 media + 2 operational)
+
+**The single most important thing to know:** V. natriegens' extreme O₂ demand means that in 96-well plates, oxygen — not nutrients — is the primary growth limiter above OD ~2–5. Fill volume is effectively an "oxygen dose" parameter.
+
 ---
 
 ## Parameters to Optimize (Liquid Handler-Controllable)
