@@ -178,7 +178,19 @@ Reduces evaporation. Most plate readers with incubation chambers support humidit
 
 Edge wells (rows A/H, columns 1/12) show 10–30% higher evaporation. Fill with water or blank medium as evaporation barriers. Use only interior 60 wells for experiments.
 
-### 16. Pathlength Correction — Volume-Dependent (Fixed Protocol)
+### 16. Condensation Control — Lid Treatment (Fixed Protocol)
+
+Condensation on plate lids causes light scatter artifacts that corrupt OD600 reads. This is especially problematic for long kinetic runs at 37°C.
+
+| Method | Description | Effectiveness |
+|--------|-------------|---------------|
+| Triton X-100 coating | Coat lid with 0.05% Triton X-100 in 20% ethanol, incubate 15s, pour off | Very effective; standard lab practice |
+| Condensation Control™ | Plate reader applies temperature gradient (lid warmer than plate) | Built into some readers (LogPhase 600, BioTek) |
+| No treatment | Condensation accumulates, increasing read noise over time | Unacceptable for runs >4h |
+
+**For V. natriegens:** At 37°C with high metabolic activity, condensation forms within 1–2h. Always apply Triton X-100 coating OR use a reader with built-in condensation control.
+
+### 17. Pathlength Correction — Volume-Dependent (Fixed Protocol)
 
 Microplate OD600 ≠ cuvette OD600. The pathlength depends on well volume:
 
