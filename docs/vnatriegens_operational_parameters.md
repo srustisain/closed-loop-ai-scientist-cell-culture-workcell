@@ -206,6 +206,22 @@ Microplate OD600 ≠ cuvette OD600. The pathlength depends on well volume:
 
 **Recommendation:** Enable automatic pathlength correction on the plate reader, or record volumes and apply correction factors post-hoc. Use flat-bottom plates only (round-bottom gives variable pathlength).
 
+### 18. Oxygen Delivery Strategy (Advanced, Plate-Dependent)
+
+V. natriegens' O₂ demand is 5–10x higher than E. coli. In standard microplates, oxygen becomes limiting at OD ~2–5. Strategies to extend the aerobic growth window:
+
+| Strategy | OTR Achieved | Equipment Required | Practical for BO? |
+|----------|-------------|-------------------|--------------------|
+| Lower fill volume (50 µL) | ~50 mmol/L/h | Standard plate | Yes — part of fill volume parameter |
+| Square deep-well plate + high RPM | ~38–40 mmol/L/h | Deep-well plate + shaker | Yes, but no continuous OD reads |
+| O₂-enriched headspace (50–100% O₂) | Up to 500 mmol/L/h | BioLector XT or equivalent | No — specialized equipment |
+| FlowerPlate with baffles | Higher than standard | BioLector system | No — specialized equipment |
+| Sensor plates (OxoDish/HydroDish) | Standard + DO/pH monitoring | PreSens sensors | Optional for diagnostics |
+
+**Key insight:** In a standard plate reader setup, oxygen limitation is inevitable above OD ~5. The practical approach is to (a) minimize fill volume, (b) maximize shaking, and (c) accept that the measurable growth rate window is OD 0.05–5. Growth above OD 5 will be O₂-limited and show artifactually lower µ.
+
+**V. natriegens-specific problem:** Under microaerobic conditions, V. natriegens switches to mixed-acid fermentation (producing acetate, formate, ethanol). This overflow metabolism causes pH crash AND produces less biomass per glucose. The OTR-limited regime is qualitatively different from aerobic growth, not just slower.
+
 ---
 
 ## Derived / Interaction Parameters
