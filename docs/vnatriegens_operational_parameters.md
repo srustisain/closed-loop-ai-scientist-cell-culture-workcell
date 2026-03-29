@@ -89,6 +89,30 @@ Mixing before OD measurement resuspends settled cells and ensures homogeneous re
 
 **Protocol:** Inoculate preculture at OD 0.05 in BHI+v2 or LBv2, grow 3–4h at 37°C/350 rpm until OD ~1.5 (exponential phase), then dilute into experimental plate.
 
+### 7. Aspiration / Dispense Speed — 50 to 300 µL/s
+
+Pipetting speed affects cell viability through shear stress and mixing quality through turbulence.
+
+| Speed | Effect | When to Use |
+|-------|--------|-------------|
+| 50–100 µL/s (slow) | Minimal shear, gentle on cells | Inoculation, fragile cells |
+| 150–200 µL/s (medium) | Good balance of speed and accuracy | Standard transfers, mixing |
+| 250–300 µL/s (fast) | Higher shear, risk of bubbles | Not recommended for cell culture |
+
+**Why it matters:** Bacterial cells (including V. natriegens) are less shear-sensitive than mammalian cells, but excessive pipetting speed causes foaming in protein-rich media (BHI, LBv2), which traps air bubbles and interferes with OD readings. Default Opentrons flow rates are aspirate=300 µL/s, dispense=500 µL/s — these should be reduced for cell culture.
+
+**Interaction with mix cycles:** Faster speed × more mix cycles = more shear. For V. natriegens in LBv2/BHI (foamy media), use moderate speed (100–200 µL/s) with 3–5 mix cycles.
+
+### 8. Dispense Height / Tip Immersion Depth
+
+| Position | Effect | Use Case |
+|----------|--------|----------|
+| Bottom of well (1–2 mm) | Best mixing, risk of scratching | Mixing/resuspension |
+| Mid-well | Good dispense, less splashing | Standard transfers |
+| Top of liquid | Minimal disturbance, poor mixing | Overlay additions |
+
+**Why it matters:** Dispensing into the liquid (submerged) reduces splashing and bubble formation but increases cross-contamination risk. Dispensing above the liquid surface avoids contamination but creates droplets that affect OD reads. For inoculation, dispense at mid-well depth.
+
 ---
 
 ## Parameters to Fix (Plate-Wide, Non-Variable)
