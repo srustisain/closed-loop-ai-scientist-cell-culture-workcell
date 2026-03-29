@@ -178,6 +178,22 @@ Reduces evaporation. Most plate readers with incubation chambers support humidit
 
 Edge wells (rows A/H, columns 1/12) show 10–30% higher evaporation. Fill with water or blank medium as evaporation barriers. Use only interior 60 wells for experiments.
 
+### 16. Pathlength Correction — Volume-Dependent (Fixed Protocol)
+
+Microplate OD600 ≠ cuvette OD600. The pathlength depends on well volume:
+
+| Volume (µL) | Pathlength (cm) | Correction Factor (to 1 cm equivalent) |
+|-------------|-----------------|----------------------------------------|
+| 100 | 0.28 | × 6.37 |
+| 200 | 0.56 | × 1.58 |
+| 250 | 0.70 | — |
+| 300 | 0.86 | × 1.06 |
+| 350 | 1.00 | None needed |
+
+**Why it matters:** If fill volume is a variable parameter (50–250 µL), raw OD reads are NOT comparable between wells with different volumes. Either (a) use pathlength correction in the reader, or (b) normalize all reads to 1 cm equivalent before analysis.
+
+**Recommendation:** Enable automatic pathlength correction on the plate reader, or record volumes and apply correction factors post-hoc. Use flat-bottom plates only (round-bottom gives variable pathlength).
+
 ---
 
 ## Derived / Interaction Parameters
