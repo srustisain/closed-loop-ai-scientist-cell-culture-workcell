@@ -253,6 +253,23 @@ Adding operational parameters to the 5 media parameters gives a 7–9 dimensiona
 
 **Strategy:** Start with 7D (media 5 + inoculation OD + fill volume). These two operational parameters have the strongest documented effect. Add mix parameters only if initial rounds show measurement noise.
 
+### Parameter Priority Ranking (Impact on V. natriegens Growth)
+
+Based on literature evidence, ranked by expected effect size:
+
+| Rank | Parameter | Expected Impact | Evidence Strength | Recommendation |
+|------|-----------|----------------|-------------------|----------------|
+| 1 | Fill volume | **Very High** — controls OTR, the growth-limiting factor | Strong (multiple studies) | **VARY** in BO |
+| 2 | Inoculation OD600 | **High** — determines lag phase and O₂ consumption timing | Strong | **VARY** in BO |
+| 3 | Incubation duration | **High** — determines what growth phase you measure | Strong | Fix at 6–8h for full curve |
+| 4 | Shaking speed | **High** — directly controls kₗa | Strong | Fix at maximum |
+| 5 | Well geometry | **Medium** — 44% kₗa difference round vs square | Moderate | Fix (choose one plate type) |
+| 6 | Measurement interval | **Medium** — affects data resolution and shaking interruption | Moderate | Fix at 10–15 min |
+| 7 | Mix cycles | **Low-Medium** — affects read consistency | Weak | Fix at 3–5 or explore |
+| 8 | Aspiration/dispense speed | **Low** — bacterial cells are shear-resistant | Weak | Fix at 150 µL/s |
+| 9 | Dispense height | **Low** — minor effect on mixing | Weak | Fix at mid-well |
+| 10 | Pathlength correction | **Measurement artifact** — not a growth parameter | Strong | Apply correction |
+
 ---
 
 ## Key References
@@ -267,3 +284,6 @@ Adding operational parameters to the 5 media parameters gives a 7–9 dimensiona
 8. Enzyscreen — "Hydrodynamics inside wells of a 96-square deepwell microplate"
 9. Gericke/Forsten et al. (2024) — "Impact of pH, Na, osmolality" (BMC Biotechnology)
 10. Hamilton Company — "Best Practices for Common Liquid Handling Activities"
+11. Lapierre et al. (2025) — "Multi-cycle high-throughput growth media optimization using batch BO" (J Chem Tech Biotech)
+12. Byonoy — "OD600 Assay: Comparative Study of Microplate Readers"
+13. Nature Comms (2025) — "Accelerating cell culture media development using BO-based iterative design"
